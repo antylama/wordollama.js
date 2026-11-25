@@ -1963,33 +1963,6 @@ function AgentPage() {
               <option value="ProposeChanges">{t("agent.propose")}</option>
               <option value="TrackedChanges">{t("agent.tracked")}</option>
             </select>
-            <div className="settings-row-wide settings-switch-list">
-              <SwitchRow label={t("agent.localTools")} hint={t("agent.localToolsHint")} checked={agent.allowLocalTools} onChange={(value) => setAgent({ ...agent, allowLocalTools: value })} />
-              <SwitchRow label={t("agent.networkTools")} hint={t("agent.networkToolsHint")} checked={agent.allowNetworkTools} onChange={(value) => setAgent({ ...agent, allowNetworkTools: value })} />
-              <SwitchRow label={t("agent.mcpTools")} hint={t("agent.mcpToolsHint")} checked={agent.allowMcpTools} onChange={(value) => setAgent({ ...agent, allowMcpTools: value })} />
-            </div>
-          </div>
-        </Card>
-        <Card title={t("agent.review")}>
-          <div className="settings-switch-list">
-            <SwitchRow label={t("agent.enableReview")} checked={review.enabled} onChange={(value) => setReview({ ...review, enabled: value })} />
-          </div>
-          <div className="settings-form-grid mt-4">
-            <label>{t("agent.reviewModel")}</label>
-            <select
-              className="select select-sm"
-              value={review.profileId}
-              onChange={(event) => setReview({ ...review, profileId: event.currentTarget.value })}
-            >
-              <option value="">{t("agent.activeModel", {
-                model: providerProfiles.find((profile) => profile.id === activeProviderId)?.model || t("agent.noActiveModel"),
-              })}</option>
-              {providerProfiles.map((profile) => (
-                <option key={profile.id} value={profile.id}>
-                  {profile.model} · {profile.name}
-                </option>
-              ))}
-            </select>
             <label>{t("agent.permissionMode")}</label>
             <select className="select select-sm" value={agent.permissionMode} onChange={(event) => setAgent({ ...agent, permissionMode: event.currentTarget.value as "request" | "auto" | "full" })}>
               <option value="request">{t("agent.permissionRequest")}</option>
@@ -1999,9 +1972,11 @@ function AgentPage() {
             <p className={`settings-row-wide settings-help${agent.permissionMode === "full" ? " text-error" : ""}`}>
               {t(`agent.permissionHints.${agent.permissionMode}`)}
             </p>
-            <p className="settings-row-wide settings-help">{t("agent.reviewModelHint")}</p>
-            <label>{t("agent.reviewInterval")}</label>
-            <input className="input input-sm" type="number" min={3} value={review.intervalSeconds} onChange={(event) => setReview({ ...review, intervalSeconds: Number(event.currentTarget.value) })} />
+            <div className="settings-row-wide settings-switch-list">
+              <SwitchRow label={t("agent.localTools")} hint={t("agent.localToolsHint")} checked={agent.allowLocalTools} onChange={(value) => setAgent({ ...agent, allowLocalTools: value })} />
+              <SwitchRow label={t("agent.networkTools")} hint={t("agent.networkToolsHint")} checked={agent.allowNetworkTools} onChange={(value) => setAgent({ ...agent, allowNetworkTools: value })} />
+              <SwitchRow label={t("agent.mcpTools")} hint={t("agent.mcpToolsHint")} checked={agent.allowMcpTools} onChange={(value) => setAgent({ ...agent, allowMcpTools: value })} />
+            </div>
           </div>
         </Card>
       </div>

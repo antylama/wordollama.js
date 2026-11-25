@@ -589,6 +589,10 @@ async function activateBridgeSession(): Promise<ToolCatalogResponse> {
 }
 
 window.addEventListener("storage", (event) => {
+  if (event.key === "wordollama-linter-settings") {
+    configureSilentLinter();
+    return;
+  }
   if (event.key === UI_LOCALE_STORAGE_KEY) {
     const preference: UiLocalePreference =
       event.newValue === "en-US" || event.newValue === "zh-CN" || event.newValue === "pl-PL"
@@ -4000,14 +4004,6 @@ function configureSilentLinter(): void {
     silentLinterTimer = null;
   }
   silentLinterSnapshot = [];
-  const settings = readLocalSettings("wordollama-linter-settings", {
-    enabled: false, profileId: "", intervalSeconds: 30,
-  });
-  if (!settings.enabled || !bridgePaired || typeof Office === "undefined") return;
-  const seconds = Math.max(3, Math.min(3600, Number(settings.intervalSeconds) || 30));
-  void captureSilentLinterSnapshot().catch((error) =>
-    appendDiagnostic("linter", error instanceof Error ? error.message : String(error)));
-  silentLinterTimer = window.setInterval(() => void runSilentLinter(), seconds * 1000);
 }
 
 function updateReviewPagination(start: number, end: number, total: number, pageSize: number): void {

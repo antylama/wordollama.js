@@ -1435,7 +1435,7 @@ button.translation-swap-button:hover {
 
 .agent-header {
   min-height: 38px;
-  padding: 6px 12px;
+  padding: 6px 26px 6px 12px;
   gap: 8px;
   border-bottom-color: #ededf0;
   background: color-mix(in srgb, var(--canvas) 96%, transparent);
