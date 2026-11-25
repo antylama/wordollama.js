@@ -38,7 +38,6 @@ import {
   type UpdateInstallResult,
   type UpdateRollbackStatus,
   type UpdateRollbackResult,
-  type ResourceDiagnosticsSnapshot,
   type ExternalOfficeToolCall,
   type WordMcpSettingsView,
 } from "./contracts";
@@ -173,10 +172,6 @@ export class RuntimeClient {
 
   async rollbackUpdate(): Promise<UpdateRollbackResult> {
     return this.settingsRequest("/updates/rollback", { method: "POST" });
-  }
-
-  async getResourceDiagnostics(): Promise<ResourceDiagnosticsSnapshot> {
-    return this.settingsRequest("/diagnostics/resources");
   }
 
   async pair(pairingCode: string): Promise<PairResponse> {

@@ -389,20 +389,6 @@
     "title": "Diagnostyka i naprawa",
     "localService": "Usługa lokalna",
     "reconnect": "Połącz ponownie",
-    "resources": {
-      "title": "Użycie zasobów",
-      "refresh": "Odśwież",
-      "bridge": "Desktop Bridge",
-      "ollama": "Ollama (zewnętrzna)",
-      "processes": "Procesy: {{count}}",
-      "workingSet": "Pamięć robocza",
-      "privateMemory": "Pamięć prywatna",
-      "cpu": "CPU",
-      "mcp": "Połączone MCP: {{count}}",
-      "agent": "Aktywne agenty: {{count}}",
-      "hint": "Ollama działa jako osobna usługa, więc jej zużycie zasobów nie wlicza się do Desktop Bridge. Użycie CPU jest liczone od drugiej próbki.",
-      "unavailable": "Połącz z usługą lokalną, aby zobaczyć użycie zasobów."
-    },
     "connection": {
       "checking": "Łączenie…",
       "checkingHint": "Sprawdzanie usługi lokalnej.",
