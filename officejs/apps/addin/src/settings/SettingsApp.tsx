@@ -18,6 +18,7 @@ import {
   Eye,
   FileCode2,
   FolderOpen,
+  Globe,
   House,
   Info,
   KeyRound,
@@ -417,7 +418,13 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
         <Card title={t("general.appearance")}>
           <div className="settings-control-list">
             <label className="settings-control-row" htmlFor="ui-language">
-              <span className="settings-control-label">{t("general.uiLanguage")}</span>
+              <span
+                className="settings-control-label"
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+              >
+                <Globe size={14} aria-hidden="true" />
+                {t("general.uiLanguage")}
+              </span>
               <select
                 id="ui-language"
                 className="select select-sm"
