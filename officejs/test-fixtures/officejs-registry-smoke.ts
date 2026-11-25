@@ -36,12 +36,14 @@ const expected = [
   "replace_exact_text",
   "apply_precise_revision",
   "ask_human",
+  "list_styles",
+  "edit_style",
 ];
 for (const name of expected) {
   if (!names.includes(name)) throw new Error(`missing Office.js tool: ${name}`);
 }
-if (names.length !== 40) {
-  throw new Error(`expected 40 Office.js descriptors, got ${names.length}`);
+if (names.length !== 42) {
+  throw new Error(`expected 42 Office.js descriptors, got ${names.length}`);
 }
 for (const name of [
   "insert_at_cursor",
@@ -124,6 +126,8 @@ const dispatchArguments: Record<string, AnyRecord> = {
   replace_exact_text: { find: "old", replace: "new" },
   apply_precise_revision: { original: "old", revised: "new", expected_selection_hash: selectionHash },
   ask_human: { question: "continue?" },
+  list_styles: {},
+  edit_style: { style_name: "Normal", font_color: "#000000" },
 };
 for (const descriptor of registry.list()) {
   await registry.execute(descriptor.name, dispatchArguments[descriptor.name] ?? {});

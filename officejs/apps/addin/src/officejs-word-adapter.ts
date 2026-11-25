@@ -258,6 +258,9 @@ export class OfficeJsWordAdapter {
     }
 
     const wordApi14 = ["read_comments", "add_comment", "apply_precise_revision"];
+    if (name === "list_styles" || name === "edit_style") {
+      return requirements.isSetSupported("WordApi", "1.5");
+    }
     const wordApi13 = [
       "get_selection",
       "select_exact_text",
@@ -1379,6 +1382,81 @@ export class OfficeJsWordAdapter {
         .map((style) => style.nameLocal);
       return Array.from(new Set([...fallback, ...paragraphStyles]))
         .sort((left, right) => left.localeCompare(right));
+    });
+  }
+
+  async listStylesDetailed(inUseOnly = true): Promise<{
+    count: number;
+    styles: Array<{
+      name: string;
+      type: string;
+      inUse: boolean;
+      fontColor: string;
+      fontName: string;
+      fontSize: number;
+      bold: boolean;
+      italic: boolean;
+    }>;
+  }> {
+    if (!Office.context?.requirements?.isSetSupported?.("WordApi", "1.5")) {
+      throw new Error(i18n.t("taskpane.wordAdapter.errors.customStyleUnsupported"));
+    }
+    return Word.run(async (context) => {
+      const styles = context.document.getStyles();
+      styles.load("items/nameLocal,items/type,items/inUse,items/font/color,items/font/name,items/font/size,items/font/bold,items/font/italic");
+      await context.sync();
+      const filtered = inUseOnly ? styles.items.filter((style) => style.inUse) : styles.items;
+      const mapped = filtered.map((style) => ({
+        name: style.nameLocal,
+        type: String(style.type),
+        inUse: Boolean(style.inUse),
+        fontColor: style.font?.color ?? "",
+        fontName: style.font?.name ?? "",
+        fontSize: Number(style.font?.size ?? 0),
+        bold: Boolean(style.font?.bold),
+        italic: Boolean(style.font?.italic),
+      }));
+      return { count: mapped.length, styles: mapped };
+    });
+  }
+
+  async editStyle(
+    styleName: string,
+    options: {
+      fontColor?: string;
+      fontName?: string;
+      fontSize?: number;
+      bold?: boolean;
+      italic?: boolean;
+    },
+  ): Promise<{ updated: number; styles: string[] }> {
+    const targetName = styleName.trim();
+    if (!targetName) throw new Error("style_name is required");
+    if (!Office.context?.requirements?.isSetSupported?.("WordApi", "1.5")) {
+      throw new Error(i18n.t("taskpane.wordAdapter.errors.customStyleUnsupported"));
+    }
+    return Word.run(async (context) => {
+      const styles = context.document.getStyles();
+      styles.load("items/nameLocal,items/inUse,items/type");
+      await context.sync();
+      const matched = targetName === "*"
+        ? styles.items.filter((style) => style.inUse)
+        : styles.items.filter((style) => style.nameLocal.toLowerCase() === targetName.toLowerCase());
+      if (matched.length === 0) {
+        throw new Error(`Style "${targetName}" was not found`);
+      }
+      const normalizedColor = options.fontColor
+        ? (normalizeHexColor(options.fontColor) ?? "#000000")
+        : undefined;
+      for (const style of matched) {
+        if (normalizedColor) style.font.color = normalizedColor;
+        if (options.fontName) style.font.name = options.fontName;
+        if (typeof options.fontSize === "number") style.font.size = options.fontSize;
+        if (typeof options.bold === "boolean") style.font.bold = options.bold;
+        if (typeof options.italic === "boolean") style.font.italic = options.italic;
+      }
+      await context.sync();
+      return { updated: matched.length, styles: matched.map((style) => style.nameLocal) };
     });
   }
 

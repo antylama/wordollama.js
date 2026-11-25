@@ -1274,6 +1274,8 @@
       "read_comments": "Read comments in the current document.",
       "read_bookmarks": "Read bookmarks and their range text in the current document.",
       "apply_style": "Apply a style to a specified paragraph.",
+      "list_styles": "Wylistuj style dokumentu (nazwa, typ, czy w użyciu, kolor, rozmiar, czcionka).",
+      "edit_style": "Zmień formatowanie czcionki (font_color, font_name, font_size, bold, italic) stylu lub '*' dla wszystkich używanych stylów.",
       "replace_paragraph": "Replace the text of a specified paragraph.",
       "insert_at_cursor": "Insert text at the current Word cursor or selection.",
       "add_comment": "Add a comment to the current selection.",

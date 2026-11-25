@@ -1266,6 +1266,8 @@
       "read_comments": "读取当前文档中的批注。",
       "read_bookmarks": "读取当前文档中的书签及其范围文本。",
       "apply_style": "将样式应用到指定段落。",
+      "list_styles": "列出文档样式（名称、类型、是否使用、字体颜色、字号、字体）。",
+      "edit_style": "修改指定样式（或 '*' 表示所有已使用样式）的字体格式（font_color、font_name、font_size、bold、italic）。",
       "replace_paragraph": "替换指定段落的文本。",
       "insert_at_cursor": "在当前 Word 光标或选区处插入文本。",
       "add_comment": "为当前选区添加批注。",

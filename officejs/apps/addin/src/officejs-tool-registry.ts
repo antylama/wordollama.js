@@ -467,6 +467,38 @@ const descriptors: OfficeToolDescriptor[] = [
       required: ["question"],
     },
   },
+  {
+    name: "list_styles",
+    description: "list_styles",
+    isWriteOperation: false,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        in_use_only: { type: "boolean" },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "edit_style",
+    description: "edit_style",
+    isWriteOperation: true,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        style_name: {
+          type: "string",
+          description: "Exact localized style name (e.g. 'Heading 1' or 'Nagłówek 1'), or '*' for all styles in use.",
+        },
+        font_color: { type: "string" },
+        font_name: { type: "string" },
+        font_size: { type: "number" },
+        bold: { type: "boolean" },
+        italic: { type: "boolean" },
+      },
+      required: ["style_name"],
+    },
+  },
 ];
 
 export class OfficeJsToolRegistry {
@@ -676,6 +708,16 @@ export class OfficeJsToolRegistry {
           this.requireString(args, "question"),
           this.optionalStringArray(args, "options"),
         );
+      case "list_styles":
+        return this.word.listStylesDetailed(this.optionalBoolean(args, "in_use_only") ?? true);
+      case "edit_style":
+        return this.word.editStyle(this.requireString(args, "style_name"), {
+          fontColor: this.optionalString(args, "font_color"),
+          fontName: this.optionalString(args, "font_name"),
+          fontSize: this.optionalNumber(args, "font_size"),
+          bold: this.optionalBoolean(args, "bold"),
+          italic: this.optionalBoolean(args, "italic"),
+        });
       default:
         throw new Error(`Office.js tool is not registered: ${name}`);
     }
