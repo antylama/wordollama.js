@@ -3141,7 +3141,42 @@ function appendCreateSkillAction(
 const MAX_CHAT_HISTORY_ENTRIES = 100;
 const MAX_CHAT_HISTORY_ITEM_CHARS = 1200;
 const MAX_CHAT_HISTORY_TOTAL_CHARS = 32000;
+const AGENT_CHAT_HISTORY_STORAGE_KEY = "wordollama-agent-chat-history";
 const agentChatHistory: Array<{ role: "User" | "Assistant"; text: string }> = [];
+
+function saveChatHistory(): void {
+  try {
+    window.localStorage.setItem(AGENT_CHAT_HISTORY_STORAGE_KEY, JSON.stringify(agentChatHistory));
+  } catch {
+    // Ignore storage quota errors in embedded WebView.
+  }
+}
+
+function restoreChatHistory(): void {
+  try {
+    const raw = window.localStorage.getItem(AGENT_CHAT_HISTORY_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return;
+    for (const item of parsed) {
+      if (
+        item &&
+        typeof item === "object" &&
+        (item.role === "User" || item.role === "Assistant") &&
+        typeof item.text === "string" &&
+        item.text.trim()
+      ) {
+        agentChatHistory.push({ role: item.role, text: item.text });
+        appendMessage(item.text, item.role === "User" ? "user" : "agent");
+      }
+    }
+    if (agentChatHistory.length > MAX_CHAT_HISTORY_ENTRIES) {
+      agentChatHistory.splice(0, agentChatHistory.length - MAX_CHAT_HISTORY_ENTRIES);
+    }
+  } catch {
+    // Ignore corrupted storage entries.
+  }
+}
 
 function pushChatHistory(role: "User" | "Assistant", rawText: string): void {
   const trimmed = rawText.trim();
@@ -3153,7 +3188,10 @@ function pushChatHistory(role: "User" | "Assistant", rawText: string): void {
   if (agentChatHistory.length > MAX_CHAT_HISTORY_ENTRIES) {
     agentChatHistory.splice(0, agentChatHistory.length - MAX_CHAT_HISTORY_ENTRIES);
   }
+  saveChatHistory();
 }
+
+restoreChatHistory();
 
 function buildRequirementWithHistory(requirement: string, maxEntries: number): string {
   const limit = Math.max(0, Math.min(200, Math.trunc(maxEntries)));
@@ -3381,8 +3419,23 @@ required<HTMLButtonElement>("#discard-agent-session").addEventListener("click", 
 
 function clearAgentView(): void {
   agentChatHistory.length = 0;
+  try {
+    window.localStorage.removeItem(AGENT_CHAT_HISTORY_STORAGE_KEY);
+  } catch {
+    // Ignore storage errors.
+  }
   agentOutput.replaceChildren(emptyChatState);
 }
+
+function startNewChat(): void {
+  void (async () => {
+    if (activeSessionId) await runtime.cancelAgent(activeSessionId);
+    clearAgentView();
+    agentRequirement.focus();
+  })().catch(showError);
+}
+
+required<HTMLButtonElement>("#new-chat").addEventListener("click", startNewChat);
 
 function closeCommandMenu(): void {
   required<HTMLElement>("#command-menu").hidden = true;
@@ -3432,13 +3485,7 @@ function renderCommandMenu(): void {
     {
       label: "/new",
       hint: i18n.t("taskpane.agent.newChatHint"),
-      action: () => {
-        void (async () => {
-          if (activeSessionId) await runtime.cancelAgent(activeSessionId);
-          clearAgentView();
-          appendMessage(i18n.t("taskpane.agent.newChatStarted"), "system");
-        })().catch(showError);
-      },
+      action: startNewChat,
     },
     {
       label: "/goal",

@@ -1,4 +1,4 @@
-import { Settings } from "lucide-react";
+import { Settings, SquarePen } from "lucide-react";
 import { FeatureIcon } from "./FeatureIcon";
 
 export function TaskpaneChrome() {
@@ -46,6 +46,17 @@ export function TaskpaneChrome() {
             data-i18n="taskpane.common.stop"
           >
             Stop
+          </button>
+          <button
+            id="new-chat"
+            className="btn btn-ghost btn-square btn-sm icon-button"
+            type="button"
+            aria-label="New chat"
+            title="New chat"
+            data-i18n-aria-label="taskpane.agent.newChat"
+            data-i18n-title="taskpane.agent.newChat"
+          >
+            <SquarePen size={15} strokeWidth={2} aria-hidden="true" />
           </button>
           <button
             id="open-settings"

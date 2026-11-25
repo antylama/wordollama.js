@@ -1011,6 +1011,7 @@
       "restoring": "正在恢复 Agent 任务",
       "recoveredTask": "恢复的 Agent 任务",
       "clearHint": "清空当前面板显示",
+      "newChat": "新对话",
       "newChatHint": "停止当前任务并开始新对话",
       "newChatStarted": "已开始新对话。",
       "goalHint": "设置或修改当前任务的长期目标",

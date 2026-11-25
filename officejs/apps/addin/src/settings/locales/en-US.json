@@ -1011,6 +1011,7 @@
       "restoring": "Restoring Agent task",
       "recoveredTask": "Recovered Agent task",
       "clearHint": "Clear the current pane",
+      "newChat": "New chat",
       "newChatHint": "Stop the current task and start a new chat",
       "newChatStarted": "A new chat has started.",
       "goalHint": "Set or edit the durable goal for this task",

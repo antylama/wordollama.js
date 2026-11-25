@@ -1019,6 +1019,7 @@
       "restoring": "Przywracanie zadania Agenta",
       "recoveredTask": "Odzyskane zadanie Agenta",
       "clearHint": "Wyczyść bieżący czat",
+      "newChat": "Nowy czat",
       "newChatHint": "Zatrzymaj bieżące zadanie i zacznij nowy czat",
       "newChatStarted": "Rozpoczęto nowy czat.",
       "goalHint": "Ustaw lub edytuj cel zadania",
