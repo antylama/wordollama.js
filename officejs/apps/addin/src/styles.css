@@ -495,9 +495,22 @@ button { cursor: pointer; }
   font-size: 11px;
   line-height: 1.45;
 }
+.chat-message.activity .chat-bubble {
+  align-items: center;
+  flex-wrap: wrap;
+}
 .chat-message.system .chat-bubble::before { content: "·"; font-weight: 700; }
 .chat-message.activity .chat-bubble::before { content: "›"; font-size: 15px; line-height: 1; }
 .chat-message.activity.failed .chat-bubble { color: #b91c1c; }
+.activity-focus-btn {
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 1px 6px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--accent) !important;
+  line-height: 1.3 !important;
+}
 .chat-message.action .chat-bubble {
   width: 100%;
   max-width: 100%;

@@ -2507,7 +2507,7 @@ function appendToolFocusAction(
   }
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "btn btn-ghost btn-xs";
+  button.className = "btn btn-ghost btn-xs activity-focus-btn";
   button.textContent = i18n.t("taskpane.agent.focusTarget");
   button.addEventListener("click", async () => {
     try {
@@ -2517,7 +2517,7 @@ function appendToolFocusAction(
       showError(error);
     }
   });
-  bubble.append(document.createElement("br"), button);
+  bubble.append(button);
 }
 
 function setAgentRunning(running: boolean, status = i18n.t("taskpane.common.ready")): void {
