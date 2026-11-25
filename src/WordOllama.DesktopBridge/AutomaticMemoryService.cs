@@ -38,11 +38,8 @@ public sealed partial class AutomaticMemoryService : BackgroundService
 
     public void ObserveUserText(string? userText)
     {
-        if (!_memories.Get().AutoMemory) return;
-        foreach (var candidate in ExtractExplicitPreferenceCandidates(userText ?? string.Empty))
-        {
-            _queue.Writer.TryWrite(candidate);
-        }
+        // Automatic background memory extraction is disabled; memories are managed manually as custom instructions.
+        return;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

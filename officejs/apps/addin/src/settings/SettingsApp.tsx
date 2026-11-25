@@ -295,30 +295,20 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
     memoryProviderProfileId: "",
     writingProfile: "",
   });
-  const [memoryModels, setMemoryModels] = useState<ProviderProfileView[]>([]);
   const [newMemory, setNewMemory] = useState("");
   const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
   const [editingMemory, setEditingMemory] = useState("");
   const [selectedMemories, setSelectedMemories] = useState<Set<string>>(() => new Set());
-  const [autoMemoryConsentOpen, setAutoMemoryConsentOpen] = useState(false);
   const saved = useRef({ preference, settings, reviewSettings });
 
   useEffect(() => {
-    void Promise.all([runtime.getReviewSettings(), runtime.getProviderSettings()])
-      .then(([value, providers]) => {
-        const loaded = normalizeReviewSettings(value);
-        const normalized = {
-          ...loaded,
-          memoryProviderProfileId: providers.profiles.some(
-            (profile) => profile.id === loaded.memoryProviderProfileId,
-          ) ? loaded.memoryProviderProfileId : "",
-        };
-        setMemoryModels(providers.profiles);
+    void runtime.getReviewSettings()
+      .then((value) => {
+        const normalized = normalizeReviewSettings(value);
         saved.current = { ...saved.current, reviewSettings: normalized };
         setReviewSettings(normalized);
       })
       .catch((error) => {
-        setMemoryModels([]);
         setStatus(toStatus(error, "common.notConnected"));
       });
   }, []);
@@ -343,13 +333,12 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
     let persistedReviewSettings = reviewSettings;
     if (
       reviewSettings.outputPreference !== saved.current.reviewSettings.outputPreference ||
-      reviewSettings.autoMemory !== saved.current.reviewSettings.autoMemory ||
-      reviewSettings.memoryProviderProfileId !== saved.current.reviewSettings.memoryProviderProfileId
+      saved.current.reviewSettings.autoMemory
     ) {
       persistedReviewSettings = normalizeReviewSettings(await runtime.saveReviewSettings(
           reviewSettings.outputPreference,
-          reviewSettings.autoMemory,
-          reviewSettings.memoryProviderProfileId,
+          false,
+          "",
         ));
     }
     writeStored("wordollama-general-settings", {
@@ -365,9 +354,7 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
   useSettingsSection(
     "general",
     !settingsEqual(settings, saved.current.settings) ||
-      reviewSettings.outputPreference !== saved.current.reviewSettings.outputPreference ||
-      reviewSettings.autoMemory !== saved.current.reviewSettings.autoMemory ||
-      reviewSettings.memoryProviderProfileId !== saved.current.reviewSettings.memoryProviderProfileId,
+      reviewSettings.outputPreference !== saved.current.reviewSettings.outputPreference,
     save,
   );
 
@@ -460,43 +447,7 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
                   <h3>{t("general.memory")}</h3>
                   <p>{t("general.memoryHint")}</p>
                 </div>
-                <label className="settings-inline-toggle">
-                  <span>{t("general.autoMemory")}</span>
-                  <input
-                    className="toggle toggle-primary toggle-sm"
-                    type="checkbox"
-                    checked={reviewSettings.autoMemory}
-                    onChange={(event) => {
-                      if (event.currentTarget.checked) setAutoMemoryConsentOpen(true);
-                      else setReviewSettings((current) => ({ ...current, autoMemory: false }));
-                    }}
-                  />
-                </label>
               </div>
-              {reviewSettings.autoMemory ? (
-                <label className="settings-control-row settings-memory-model" htmlFor="memory-model">
-                  <span className="settings-switch-copy">
-                    <span>{t("general.memoryModel")}</span>
-                    <small>{t("general.memoryModelHint")}</small>
-                  </span>
-                  <select
-                    id="memory-model"
-                    className="select select-sm"
-                    value={reviewSettings.memoryProviderProfileId}
-                    onChange={(event) => setReviewSettings((current) => ({
-                      ...current,
-                      memoryProviderProfileId: event.currentTarget.value,
-                    }))}
-                  >
-                    <option value="">{t("general.memoryModelActive")}</option>
-                    {memoryModels.map((profile) => (
-                      <option key={profile.id} value={profile.id}>
-                        {profile.model} · {profile.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
               {reviewSettings.memories.length ? (
                 <div className="settings-memory-toolbar">
                   <label className="settings-memory-select-all">
@@ -544,8 +495,9 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
                       })}
                     />
                     {editingMemoryId === memory.id ? (
-                      <input
-                        className="input input-sm"
+                      <textarea
+                        className="textarea textarea-sm"
+                        rows={3}
                         value={editingMemory}
                         onChange={(event) => setEditingMemory(event.currentTarget.value)}
                       />
@@ -584,8 +536,9 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
                 )) : <div className="settings-list-empty">{t("general.emptyMemories")}</div>}
               </div>
               <div className="settings-memory-add">
-                <input
-                  className="input input-sm"
+                <textarea
+                  className="textarea textarea-sm"
+                  rows={3}
                   value={newMemory}
                   onChange={(event) => setNewMemory(event.currentTarget.value)}
                   placeholder={t("general.newMemoryPlaceholder")}
@@ -595,21 +548,6 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
                   {t("common.add")}
                 </button>
               </div>
-            </section>
-            <section className="settings-preference-section">
-              <h3>{t("general.outputPreference")}</h3>
-              <p>{t("general.outputPreferenceHint")}</p>
-              <textarea
-                id="output-preference"
-                className="textarea"
-                rows={5}
-                value={reviewSettings.outputPreference}
-                onChange={(event) => setReviewSettings((current) => ({
-                  ...current,
-                  outputPreference: event.currentTarget.value,
-                }))}
-                placeholder={t("general.outputPreferencePlaceholder")}
-              />
             </section>
           </div>
         </Card>
@@ -628,32 +566,6 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
           <Status value={status} />
         </Card>
       </div>
-      {autoMemoryConsentOpen ? (
-        <dialog className="modal modal-open" open onCancel={() => setAutoMemoryConsentOpen(false)}>
-          <div className="modal-box settings-confirm-modal">
-            <h3 className="font-bold text-lg">{t("general.autoMemoryConsentTitle")}</h3>
-            <p>{t("general.autoMemoryConsentMessage")}</p>
-            <div className="modal-action">
-              <button
-                className="btn btn-primary btn-sm"
-                type="button"
-                onClick={() => {
-                  setReviewSettings((current) => ({ ...current, autoMemory: true }));
-                  setAutoMemoryConsentOpen(false);
-                }}
-              >
-                {t("general.autoMemoryConsentAllow")}
-              </button>
-              <button className="btn btn-ghost btn-sm" type="button" onClick={() => setAutoMemoryConsentOpen(false)}>
-                {t("common.cancel")}
-              </button>
-            </div>
-          </div>
-          <form method="dialog" className="modal-backdrop" onSubmit={() => setAutoMemoryConsentOpen(false)}>
-            <button type="submit">{t("common.close")}</button>
-          </form>
-        </dialog>
-      ) : null}
     </div>
   );
 }
