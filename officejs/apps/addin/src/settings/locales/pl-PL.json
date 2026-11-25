@@ -360,6 +360,7 @@
     "execution": "Polityka wykonania",
     "review": "Cicha recenzja w tle",
     "iterations": "Maksymalna liczba iteracji",
+    "chatHistoryLimit": "Historia czatu (liczba wiadomości)",
     "mode": "Dostęp do dokumentu",
     "viewOnly": "Tylko do odczytu",
     "propose": "Proponuj zmiany",

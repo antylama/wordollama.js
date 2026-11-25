@@ -352,6 +352,7 @@
     "execution": "执行策略",
     "review": "静默审查",
     "iterations": "最大迭代次数",
+    "chatHistoryLimit": "对话历史（保留消息数）",
     "mode": "文档权限",
     "viewOnly": "仅查看",
     "propose": "提出修改建议",

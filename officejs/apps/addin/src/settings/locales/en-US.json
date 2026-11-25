@@ -352,6 +352,7 @@
     "execution": "Execution policy",
     "review": "Silent review",
     "iterations": "Maximum iterations",
+    "chatHistoryLimit": "Chat history (message limit)",
     "mode": "Document access",
     "viewOnly": "Read only",
     "propose": "Propose changes",

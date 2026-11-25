@@ -1889,6 +1889,7 @@ function AgentPage() {
       allowLocalTools: false,
       allowNetworkTools: false,
       allowMcpTools: false,
+      chatHistoryLimit: 16,
       permissionMode: "request" as "request" | "auto" | "full",
       // Legacy aliases are read once so settings from older builds keep working.
       iterations: undefined as number | undefined,
@@ -1903,6 +1904,9 @@ function AgentPage() {
       allowLocalTools: stored.allowLocalTools || legacyExternal,
       allowNetworkTools: stored.allowNetworkTools || legacyExternal,
       allowMcpTools: stored.allowMcpTools || legacyExternal,
+      chatHistoryLimit: typeof stored.chatHistoryLimit === "number"
+        ? Math.max(0, Math.min(50, Math.trunc(stored.chatHistoryLimit)))
+        : 16,
       permissionMode: stored.permissionMode === "auto" || stored.permissionMode === "full"
         ? stored.permissionMode
         : "request" as const,
@@ -1953,6 +1957,8 @@ function AgentPage() {
           <div className="settings-form-grid">
             <label>{t("agent.iterations")}</label>
             <input className="input input-sm" type="number" min={1} max={200} value={agent.maxIterations} onChange={(event) => setAgent({ ...agent, maxIterations: Math.max(1, Math.min(200, Number(event.currentTarget.value))) })} />
+            <label>{t("agent.chatHistoryLimit")}</label>
+            <input className="input input-sm" type="number" min={0} max={50} value={agent.chatHistoryLimit} onChange={(event) => setAgent({ ...agent, chatHistoryLimit: Math.max(0, Math.min(50, Number(event.currentTarget.value) || 0)) })} />
             <label>{t("agent.mode")}</label>
             <select className="select select-sm" value={agent.executionMode} onChange={(event) => setAgent({ ...agent, executionMode: event.currentTarget.value })}>
               <option value="ViewOnly">{t("agent.viewOnly")}</option>

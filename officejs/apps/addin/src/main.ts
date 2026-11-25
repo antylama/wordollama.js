@@ -2986,6 +2986,8 @@ async function consumeAgentSession(
       else appendMessage(text, result.isError ? "error-message" : "activity");
     } else if (event.type === "completed" || event.type === "cancelled") {
       clearAgentRecovery();
+      const assistantReply = (latestAgentText || event.message || "").trim();
+      if (assistantReply) pushChatHistory("Assistant", assistantReply);
       if (event.type === "completed" && sources.size > 0) appendAgentSources([...sources.values()]);
       if (event.type === "completed") appendCreateSkillAction({
         requirement,
@@ -3116,6 +3118,39 @@ function appendCreateSkillAction(
   if (runImmediately) void generate();
 }
 
+const MAX_CHAT_HISTORY_ENTRIES = 50;
+const MAX_CHAT_HISTORY_ITEM_CHARS = 1200;
+const MAX_CHAT_HISTORY_TOTAL_CHARS = 6000;
+const agentChatHistory: Array<{ role: "User" | "Assistant"; text: string }> = [];
+
+function pushChatHistory(role: "User" | "Assistant", rawText: string): void {
+  const trimmed = rawText.trim();
+  if (!trimmed) return;
+  const text = trimmed.length > MAX_CHAT_HISTORY_ITEM_CHARS
+    ? `${trimmed.slice(0, MAX_CHAT_HISTORY_ITEM_CHARS)}…`
+    : trimmed;
+  agentChatHistory.push({ role, text });
+  if (agentChatHistory.length > MAX_CHAT_HISTORY_ENTRIES) {
+    agentChatHistory.splice(0, agentChatHistory.length - MAX_CHAT_HISTORY_ENTRIES);
+  }
+}
+
+function buildRequirementWithHistory(requirement: string, maxEntries: number): string {
+  const limit = Math.max(0, Math.min(50, Math.trunc(maxEntries)));
+  if (limit === 0 || agentChatHistory.length === 0) return requirement;
+  const recent = agentChatHistory.slice(-limit);
+  const selected: string[] = [];
+  let totalChars = 0;
+  for (let i = recent.length - 1; i >= 0; i -= 1) {
+    const entry = recent[i];
+    const line = `${entry.role}: ${entry.text}`;
+    if (selected.length > 0 && totalChars + line.length > MAX_CHAT_HISTORY_TOTAL_CHARS) break;
+    selected.unshift(line);
+    totalChars += line.length + 1;
+  }
+  return `Recent conversation:\n${selected.join("\n")}\n\nCurrent request:\n${requirement}`;
+}
+
 async function runAgent(requirement: string): Promise<void> {
   if (!requirement.trim()) throw new Error(i18n.t("taskpane.agent.instructionRequired"));
   clearError();
@@ -3141,6 +3176,7 @@ async function runAgent(requirement: string): Promise<void> {
       allowLocalTools: false,
       allowNetworkTools: false,
       allowMcpTools: false,
+      chatHistoryLimit: 16,
       permissionMode: "request" as "request" | "auto" | "full",
       // Compatibility aliases used by early settings builds.
       iterations: undefined as number | undefined,
@@ -3184,7 +3220,12 @@ async function runAgent(requirement: string): Promise<void> {
         appendMessage(i18n.t("taskpane.agent.trackingUnsupported"), "system");
       }
     }
-    const session = await runtime.startAgent(requirement, tools.list(), {
+    const chatHistoryLimit = typeof currentAgentSettings.chatHistoryLimit === "number"
+      ? currentAgentSettings.chatHistoryLimit
+      : 16;
+    const effectiveRequirement = buildRequirementWithHistory(requirement, chatHistoryLimit);
+    pushChatHistory("User", requirement);
+    const session = await runtime.startAgent(effectiveRequirement, tools.list(), {
       goal: goal || undefined,
       skillName,
       imageDataUrl: imageDataUrl || undefined,
@@ -3319,6 +3360,7 @@ required<HTMLButtonElement>("#discard-agent-session").addEventListener("click", 
 });
 
 function clearAgentView(): void {
+  agentChatHistory.length = 0;
   agentOutput.replaceChildren(emptyChatState);
 }
 
