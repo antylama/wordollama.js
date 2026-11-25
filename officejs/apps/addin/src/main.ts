@@ -106,6 +106,7 @@ import {
   type ReviewAnchor,
 } from "./review-anchor";
 import i18n, {
+  getCurrentUiLocale,
   setUiLocalePreference,
   UI_LOCALE_STORAGE_KEY,
   type UiLocalePreference,
@@ -591,7 +592,7 @@ async function activateBridgeSession(): Promise<ToolCatalogResponse> {
 window.addEventListener("storage", (event) => {
   if (event.key === UI_LOCALE_STORAGE_KEY) {
     const preference: UiLocalePreference =
-      event.newValue === "en-US" || event.newValue === "zh-CN"
+      event.newValue === "en-US" || event.newValue === "zh-CN" || event.newValue === "pl-PL"
         ? event.newValue
         : "auto";
     void setUiLocalePreference(preference);
@@ -3098,7 +3099,7 @@ function appendCreateSkillAction(
         ...task,
         userFeedback: feedback.value.trim(),
         officeTools: tools.list(),
-        uiLocale: i18n.resolvedLanguage?.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US",
+        uiLocale: getCurrentUiLocale(),
       });
       await refreshAvailableSkills();
       bubble.textContent = i18n.t("taskpane.agent.skillCreated", { name: result.name });
@@ -3198,7 +3199,7 @@ async function runAgent(requirement: string): Promise<void> {
       allowMcpTools: currentAgentSettings.allowMcpTools || legacyExternalTools,
       permissionMode,
       languageMode: "auto",
-      uiLocale: i18n.resolvedLanguage?.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US",
+      uiLocale: getCurrentUiLocale(),
     });
     activeSessionId = session.sessionId;
     saveAgentRecovery({

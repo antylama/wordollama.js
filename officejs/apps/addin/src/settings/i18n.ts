@@ -1,5 +1,6 @@
 export {
   UI_LOCALE_STORAGE_KEY,
+  getCurrentUiLocale,
   readUiLocalePreference,
   resolveOfficeLocale,
   resolveUiLocale,

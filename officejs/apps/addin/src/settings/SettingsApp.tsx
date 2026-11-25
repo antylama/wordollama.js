@@ -65,6 +65,7 @@ import {
 } from "../markdown-settings";
 import { markdownToHtml } from "../markdown-workflow";
 import {
+  getCurrentUiLocale,
   readUiLocalePreference,
   setUiLocalePreference,
   type UiLocalePreference,
@@ -436,6 +437,7 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
               >
                 <option value="auto">{t("general.uiLanguageAuto")}</option>
                 <option value="en-US">{t("general.uiLanguageEnglish")}</option>
+                <option value="pl-PL">{t("general.uiLanguagePolish")}</option>
                 <option value="zh-CN">{t("general.uiLanguageChinese")}</option>
               </select>
             </label>
@@ -1257,7 +1259,7 @@ function ModelsPage({ onProviderSettingsChange }: {
                       clientId: oauth.clientId.trim(),
                       clientSecret: oauth.clientSecret.trim() || undefined,
                       quotaProject: oauth.quotaProject.trim() || undefined,
-                      uiLocale: i18n.resolvedLanguage === "zh-CN" ? "zh-CN" : "en-US",
+                      uiLocale: getCurrentUiLocale(),
                     }).then((result) => {
                       applyView(result.providerSettings);
                       setOauth((current) => ({ ...current, clientSecret: "" }));
@@ -1386,7 +1388,7 @@ function SkillsPage() {
             try {
               const generated = await runtime.generateSkill({
                 requirement: createRequirement.trim(),
-                uiLocale: (readUiLocalePreference() === "zh-CN" ? "zh-CN" : "en-US"),
+                uiLocale: getCurrentUiLocale(),
               });
               setCreateRequirement("");
               setStatus({ translationKey: "skills.created", values: { name: generated.name } });

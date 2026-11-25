@@ -42,7 +42,7 @@ import {
   type ExternalOfficeToolCall,
   type WordMcpSettingsView,
 } from "./contracts";
-import i18n from "./i18n";
+import i18n, { getCurrentUiLocale } from "./i18n";
 
 const tr = (key: string, values?: Record<string, unknown>): string =>
   i18n.t(key, values);
@@ -238,7 +238,7 @@ export class RuntimeClient {
       headers: {
         "Content-Type": "application/json",
         "X-WordOllama-Session": this.sessionToken,
-        "Accept-Language": i18n.resolvedLanguage === "zh-CN" ? "zh-CN" : "en-US",
+        "Accept-Language": getCurrentUiLocale(),
       },
       body: JSON.stringify(command),
     });
@@ -392,7 +392,7 @@ export class RuntimeClient {
       headers: {
         "Content-Type": "application/json",
         "X-WordOllama-Session": this.sessionToken,
-        "Accept-Language": i18n.resolvedLanguage === "zh-CN" ? "zh-CN" : "en-US",
+        "Accept-Language": getCurrentUiLocale(),
       },
       body: JSON.stringify({ model }),
     });
@@ -910,7 +910,7 @@ export class RuntimeClient {
       }
       headers.set(
         "Accept-Language",
-        i18n.resolvedLanguage === "zh-CN" ? "zh-CN" : "en-US",
+        getCurrentUiLocale(),
       );
       return this.sessionFetch(BRIDGE_URL + path, { ...init, headers });
     };

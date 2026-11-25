@@ -122,6 +122,8 @@ export interface WordMcpSettingsView {
   accessToken?: string;
 }
 
+import type { SupportedUiLocale } from "./i18n.ts";
+
 export interface GenerateSkillRequest {
   requirement: string;
   taskResult?: string;
@@ -129,7 +131,7 @@ export interface GenerateSkillRequest {
   suggestedName?: string;
   toolsUsed?: string[];
   officeTools?: OfficeToolDescriptor[];
-  uiLocale?: "en-US" | "zh-CN";
+  uiLocale?: SupportedUiLocale;
 }
 
 export interface GeneratedSkillResponse extends SkillSummary {
@@ -219,7 +221,7 @@ export interface GoogleOAuthRequest {
   clientId: string;
   clientSecret?: string;
   quotaProject?: string;
-  uiLocale: "en-US" | "zh-CN";
+  uiLocale: SupportedUiLocale;
 }
 
 export interface GoogleOAuthResponse {
@@ -345,7 +347,7 @@ export interface AgentStartOptions {
   allowMcpTools: boolean;
   permissionMode: "request" | "auto" | "full";
   languageMode: "auto" | "zh" | "en" | "source";
-  uiLocale: "en-US" | "zh-CN";
+  uiLocale: SupportedUiLocale;
 }
 
 export interface RuntimeEvent {
