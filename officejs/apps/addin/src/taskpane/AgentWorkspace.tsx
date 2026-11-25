@@ -61,7 +61,7 @@ export function AgentWorkspace() {
         <div id="agent-output" className="chat-thread" aria-live="polite">
           <div id="empty-chat-state" className="empty-state">
             <span className="empty-icon" aria-hidden="true">
-              <FeatureIcon name="agent" size={22} />
+              <FeatureIcon name="agent" size={48} />
             </span>
             <h2>WordOllama.JS Agent</h2>
             <p className="muted" data-i18n="taskpane.agent.emptyHint">
@@ -103,39 +103,6 @@ export function AgentWorkspace() {
               Remove image
             </button>
           </div>
-          <div className="composer-toolbar">
-            <button
-              id="attach-image"
-              className="btn btn-ghost btn-square btn-sm icon-button"
-              type="button"
-              aria-label="Add image"
-              title="Add image"
-              data-i18n-aria-label="taskpane.agent.addImage"
-              data-i18n-title="taskpane.agent.addImage"
-            >
-              <ImagePlus size={16} strokeWidth={2} aria-hidden="true" />
-            </button>
-            <button
-              id="toggle-agent-goal"
-              className="btn btn-ghost btn-sm goal-toggle"
-              type="button"
-              aria-expanded="false"
-              aria-controls="agent-goal-row"
-            >
-              <Target size={15} strokeWidth={2} aria-hidden="true" />
-              <span data-i18n="taskpane.agent.goal">Goal</span>
-            </button>
-            <button
-              id="agent-undo-task"
-              className="btn btn-ghost btn-sm"
-              type="button"
-              hidden
-              data-i18n-title="taskpane.agent.undoTaskDetail"
-            >
-              <Undo2 size={15} strokeWidth={2} aria-hidden="true" />
-              <span data-i18n="taskpane.agent.undoTask">Undo task</span>
-            </button>
-          </div>
           <div id="agent-goal-row" className="agent-goal-row" hidden>
             <input
               id="agent-goal"
@@ -160,15 +127,50 @@ export function AgentWorkspace() {
             <textarea
               id="agent-requirement"
               className="textarea"
-              rows={2}
+              rows={1}
               placeholder="Enter an instruction, or type / for quick actions…"
               aria-label="Agent instruction"
               data-i18n-placeholder="taskpane.agent.instructionPlaceholder"
               data-i18n-aria-label="taskpane.agent.instruction"
             />
+          </div>
+          <div className="composer-toolbar">
+            <div className="composer-toolbar-left">
+              <button
+                id="attach-image"
+                className="btn btn-ghost btn-square btn-sm icon-button"
+                type="button"
+                aria-label="Add image"
+                title="Add image"
+                data-i18n-aria-label="taskpane.agent.addImage"
+                data-i18n-title="taskpane.agent.addImage"
+              >
+                <ImagePlus size={16} strokeWidth={2} aria-hidden="true" />
+              </button>
+              <button
+                id="toggle-agent-goal"
+                className="btn btn-ghost btn-sm goal-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="agent-goal-row"
+              >
+                <Target size={15} strokeWidth={2} aria-hidden="true" />
+                <span data-i18n="taskpane.agent.goal">Goal</span>
+              </button>
+              <button
+                id="agent-undo-task"
+                className="btn btn-ghost btn-sm"
+                type="button"
+                hidden
+                data-i18n-title="taskpane.agent.undoTaskDetail"
+              >
+                <Undo2 size={15} strokeWidth={2} aria-hidden="true" />
+                <span data-i18n="taskpane.agent.undoTask">Undo task</span>
+              </button>
+            </div>
             <button
               id="agent-run"
-              className="btn btn-primary btn-square btn-sm send-button"
+              className="btn btn-primary btn-circle btn-sm send-button"
               type="button"
               aria-label="Send"
               data-i18n-aria-label="taskpane.agent.send"

@@ -5,7 +5,7 @@ export function TaskpaneChrome() {
   return (
     <>
       <header className="navbar agent-header">
-        <div className="brand">
+        <div className="brand" hidden>
           <span className="sparkle" aria-hidden="true">
             <FeatureIcon id="surface-feature-icon" name="agent" size={16} />
           </span>
@@ -13,6 +13,22 @@ export function TaskpaneChrome() {
             <span className="product-edition">WordOllama.JS</span>
             <h1 id="surface-title">Agent</h1>
           </div>
+        </div>
+        <div
+          id="runtime-status"
+          className="runtime-strip"
+          data-state="connecting"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="runtime-indicator" aria-hidden="true" />
+          <span
+            id="runtime-status-text"
+            className="runtime-strip-text"
+            data-i18n="taskpane.runtime.connecting"
+          >
+            Connecting to local service…
+          </span>
         </div>
         <div className="header-actions">
           <span
@@ -44,23 +60,6 @@ export function TaskpaneChrome() {
           </button>
         </div>
       </header>
-
-      <div
-        id="runtime-status"
-        className="runtime-strip"
-        data-state="connecting"
-        role="status"
-        aria-live="polite"
-      >
-        <span className="runtime-indicator" aria-hidden="true" />
-        <span
-          id="runtime-status-text"
-          className="runtime-strip-text"
-          data-i18n="taskpane.runtime.connecting"
-        >
-          Connecting to local service…
-        </span>
-      </div>
 
       <section id="agent-status-bar" className="agent-status-bar" hidden>
         <span className="status-pulse" aria-hidden="true" />

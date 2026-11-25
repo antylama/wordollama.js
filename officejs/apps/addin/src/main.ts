@@ -3066,7 +3066,22 @@ function appendCreateSkillAction(
   task: { requirement: string; taskResult: string; toolsUsed: string[] },
   runImmediately = false,
 ): void {
-  const bubble = appendMessage(i18n.t("taskpane.agent.skillReviewHint"), "action");
+  const bubble = appendMessage("", "action");
+  const details = document.createElement("details");
+  details.className = "skill-promote-details";
+  if (runImmediately) details.open = true;
+
+  const summary = document.createElement("summary");
+  summary.className = "skill-promote-summary";
+  summary.textContent = i18n.t("taskpane.agent.createSkillFromTask");
+
+  const body = document.createElement("div");
+  body.className = "skill-promote-body";
+
+  const hint = document.createElement("div");
+  hint.className = "skill-promote-hint";
+  hint.textContent = i18n.t("taskpane.agent.skillReviewHint");
+
   const button = document.createElement("button");
   button.type = "button";
   button.className = "btn btn-primary btn-sm";
@@ -3094,7 +3109,9 @@ function appendCreateSkillAction(
     }
   };
   button.addEventListener("click", () => void generate());
-  bubble.append(feedback, button);
+  body.append(hint, feedback, button);
+  details.append(summary, body);
+  bubble.replaceChildren(details);
   if (runImmediately) void generate();
 }
 
@@ -3108,6 +3125,7 @@ async function runAgent(requirement: string): Promise<void> {
   selectedAgentSkillName = "";
   appendMessage(requirement, "user", imageDataUrl);
   agentRequirement.value = "";
+  autoResizeComposer();
   clearAgentImage();
   setAgentRunning(true, i18n.t("taskpane.agent.creatingTask"));
   let previousTrackingMode: string | null = null;
@@ -3313,8 +3331,12 @@ function updateCommandSelection(): void {
   required<HTMLElement>("#command-menu")
     .querySelectorAll<HTMLButtonElement>(".command-item")
     .forEach((button, index) => {
-      button.classList.toggle("selected", index === selectedCommandIndex);
-      button.setAttribute("aria-selected", String(index === selectedCommandIndex));
+      const isSelected = index === selectedCommandIndex;
+      button.classList.toggle("selected", isSelected);
+      button.setAttribute("aria-selected", String(isSelected));
+      if (isSelected) {
+        button.scrollIntoView({ block: "nearest" });
+      }
     });
 }
 
@@ -3324,6 +3346,7 @@ function executeCommandMenuItem(index: number): void {
   closeCommandMenu();
   selectedAgentSkillName = "";
   agentRequirement.value = "";
+  autoResizeComposer();
   item.action();
 }
 
@@ -3455,7 +3478,16 @@ function renderCommandMenu(): void {
   updateCommandSelection();
 }
 
-agentRequirement.addEventListener("input", renderCommandMenu);
+function autoResizeComposer(): void {
+  agentRequirement.style.height = "auto";
+  const maxHeight = Math.round(window.innerHeight * 0.35);
+  agentRequirement.style.height = `${Math.min(agentRequirement.scrollHeight, maxHeight)}px`;
+}
+
+agentRequirement.addEventListener("input", () => {
+  autoResizeComposer();
+  renderCommandMenu();
+});
 agentRequirement.addEventListener("keydown", (event) => {
   if (!required<HTMLElement>("#command-menu").hidden) {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
