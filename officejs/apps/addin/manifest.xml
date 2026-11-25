@@ -11,8 +11,8 @@
   <Description DefaultValue="WordOllama.JS unified add-in for Word on Windows and Mac">
     <Override Locale="zh-CN" Value="适用于 Windows 和 Mac Word 的 WordOllama.JS 统一加载项" />
   </Description>
-  <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-80.png" />
+  <IconUrl DefaultValue="https://localhost:3000/assets/ribbon/agent-32.png?v=mono-2" />
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/ribbon/agent-80.png?v=mono-2" />
   <SupportUrl DefaultValue="https://www.wordollama.com" />
   <AppDomains>
     <AppDomain>https://localhost:3000</AppDomain>
