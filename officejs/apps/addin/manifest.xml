@@ -46,69 +46,32 @@
         <DesktopFormFactor>
           <FunctionFile resid="Taskpane.Url" />
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
-            <CustomTab id="WordOllama.JS.Tab">
-              <Group id="WordOllama.JS.CreateGroup">
-                <Label resid="CreateGroup.Label" />
-                <Icon><bt:Image size="16" resid="CreateGroup.Icon16" /><bt:Image size="32" resid="CreateGroup.Icon32" /><bt:Image size="80" resid="CreateGroup.Icon80" /></Icon>
-                <Control xsi:type="Button" id="WordOllama.JS.Writing">
-                  <Label resid="Writing.Label" />
+            <OfficeTab id="TabHome">
+              <Group id="WordOllama.JS.HomeGroup">
+                <Label resid="Tab.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Agent.Icon16" />
+                  <bt:Image size="32" resid="Agent.Icon32" />
+                  <bt:Image size="80" resid="Agent.Icon80" />
+                </Icon>
+                <Control xsi:type="Button" id="WordOllama.JS.OpenTaskpane">
+                  <Label resid="Tab.Label" />
                   <Supertip>
-                    <Title resid="Writing.Label" />
-                    <Description resid="Workflow.Tooltip" />
+                    <Title resid="Tab.Label" />
+                    <Description resid="residDescription" />
                   </Supertip>
-                  <Icon><bt:Image size="16" resid="Writing.Icon16" /><bt:Image size="32" resid="Writing.Icon32" /><bt:Image size="80" resid="Writing.Icon80" /></Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>openWriting</FunctionName></Action>
-                </Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Image"><Label resid="Image.Label" /><Supertip><Title resid="Image.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Image.Icon16" /><bt:Image size="32" resid="Image.Icon32" /><bt:Image size="80" resid="Image.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openImage</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Table"><Label resid="Table.Label" /><Supertip><Title resid="Table.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Table.Icon16" /><bt:Image size="32" resid="Table.Icon32" /><bt:Image size="80" resid="Table.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openTable</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Html"><Label resid="Html.Label" /><Supertip><Title resid="Html.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Html.Icon16" /><bt:Image size="32" resid="Html.Icon32" /><bt:Image size="80" resid="Html.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openHtml</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Markdown"><Label resid="Markdown.Label" /><Supertip><Title resid="Markdown.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Markdown.Icon16" /><bt:Image size="32" resid="Markdown.Icon32" /><bt:Image size="80" resid="Markdown.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openMarkdown</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Agent">
-                  <Label resid="Agent.Label" /><Supertip><Title resid="Agent.Label" /><Description resid="Workflow.Tooltip" /></Supertip>
-                  <Icon><bt:Image size="16" resid="Agent.Icon16" /><bt:Image size="32" resid="Agent.Icon32" /><bt:Image size="80" resid="Agent.Icon80" /></Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>openAgent</FunctionName></Action>
-                </Control>
-                <Control xsi:type="Button" id="WordOllama.JS.CustomPrompts"><Label resid="CustomPrompts.Label" /><Supertip><Title resid="CustomPrompts.Label" /><Description resid="CustomPrompts.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="CustomPrompts.Icon16" /><bt:Image size="32" resid="CustomPrompts.Icon32" /><bt:Image size="80" resid="CustomPrompts.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openCustomPrompts</FunctionName></Action></Control>
-              </Group>
-              <Group id="WordOllama.JS.EditGroup">
-                <Label resid="EditGroup.Label" />
-                <Icon><bt:Image size="16" resid="EditGroup.Icon16" /><bt:Image size="32" resid="EditGroup.Icon32" /><bt:Image size="80" resid="EditGroup.Icon80" /></Icon>
-                <Control xsi:type="Button" id="WordOllama.JS.Polish"><Label resid="Polish.Label" /><Supertip><Title resid="Polish.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Polish.Icon16" /><bt:Image size="32" resid="Polish.Icon32" /><bt:Image size="80" resid="Polish.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openPolish</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Expand"><Label resid="Expand.Label" /><Supertip><Title resid="Expand.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Expand.Icon16" /><bt:Image size="32" resid="Expand.Icon32" /><bt:Image size="80" resid="Expand.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openExpand</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Simplify"><Label resid="Simplify.Label" /><Supertip><Title resid="Simplify.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Simplify.Icon16" /><bt:Image size="32" resid="Simplify.Icon32" /><bt:Image size="80" resid="Simplify.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openSimplify</FunctionName></Action></Control>
-              </Group>
-              <Group id="WordOllama.JS.EditMoreGroup">
-                <Label resid="EditMenu.Label" />
-                <Icon><bt:Image size="16" resid="EditMoreGroup.Icon16" /><bt:Image size="32" resid="EditMoreGroup.Icon32" /><bt:Image size="80" resid="EditMoreGroup.Icon80" /></Icon>
-                <Control xsi:type="Button" id="WordOllama.JS.Modify"><Label resid="Modify.Label" /><Supertip><Title resid="Modify.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Modify.Icon16" /><bt:Image size="32" resid="Modify.Icon32" /><bt:Image size="80" resid="Modify.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openModify</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Continue"><Label resid="Continue.Label" /><Supertip><Title resid="Continue.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Continue.Icon16" /><bt:Image size="32" resid="Continue.Icon32" /><bt:Image size="80" resid="Continue.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openContinue</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Summarize"><Label resid="Summarize.Label" /><Supertip><Title resid="Summarize.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Summarize.Icon16" /><bt:Image size="32" resid="Summarize.Icon32" /><bt:Image size="80" resid="Summarize.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openSummarize</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Fix"><Label resid="Fix.Label" /><Supertip><Title resid="Fix.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Fix.Icon16" /><bt:Image size="32" resid="Fix.Icon32" /><bt:Image size="80" resid="Fix.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openFix</FunctionName></Action></Control>
-              </Group>
-              <Group id="WordOllama.JS.TranslateGroup">
-                <Label resid="TranslateGroup.Label" /><Icon><bt:Image size="16" resid="TranslateGroup.Icon16" /><bt:Image size="32" resid="TranslateGroup.Icon32" /><bt:Image size="80" resid="TranslateGroup.Icon80" /></Icon>
-                <Control xsi:type="Button" id="WordOllama.JS.Translate"><Label resid="Translate.Label" /><Supertip><Title resid="Translate.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Translate.Icon16" /><bt:Image size="32" resid="Translate.Icon32" /><bt:Image size="80" resid="Translate.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openTranslate</FunctionName></Action></Control>
-              </Group>
-              <Group id="WordOllama.JS.LegalGroup">
-                <Label resid="LegalGroup.Label" /><Icon><bt:Image size="16" resid="LegalGroup.Icon16" /><bt:Image size="32" resid="LegalGroup.Icon32" /><bt:Image size="80" resid="LegalGroup.Icon80" /></Icon>
-                <Control xsi:type="Button" id="WordOllama.JS.Risk"><Label resid="Risk.Label" /><Supertip><Title resid="Risk.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Risk.Icon16" /><bt:Image size="32" resid="Risk.Icon32" /><bt:Image size="80" resid="Risk.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openRisk</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Fairness"><Label resid="Fairness.Label" /><Supertip><Title resid="Fairness.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Fairness.Icon16" /><bt:Image size="32" resid="Fairness.Icon32" /><bt:Image size="80" resid="Fairness.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openFairness</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.MootCourt"><Label resid="MootCourt.Label" /><Supertip><Title resid="MootCourt.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="MootCourt.Icon16" /><bt:Image size="32" resid="MootCourt.Icon32" /><bt:Image size="80" resid="MootCourt.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openMootCourt</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.ContractCompare"><Label resid="ContractCompare.Label" /><Supertip><Title resid="ContractCompare.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="ContractCompare.Icon16" /><bt:Image size="32" resid="ContractCompare.Icon32" /><bt:Image size="80" resid="ContractCompare.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openContractCompare</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Compare"><Label resid="Compare.Label" /><Supertip><Title resid="Compare.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Compare.Icon16" /><bt:Image size="32" resid="Compare.Icon32" /><bt:Image size="80" resid="Compare.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openCompare</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.LawSearch"><Label resid="LawSearch.Label" /><Supertip><Title resid="LawSearch.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="LawSearch.Icon16" /><bt:Image size="32" resid="LawSearch.Icon32" /><bt:Image size="80" resid="LawSearch.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openLawSearch</FunctionName></Action></Control>
-                <Control xsi:type="Button" id="WordOllama.JS.Review">
-                  <Label resid="Review.Label" /><Supertip><Title resid="Review.Label" /><Description resid="Workflow.Tooltip" /></Supertip>
-                  <Icon><bt:Image size="16" resid="Review.Icon16" /><bt:Image size="32" resid="Review.Icon32" /><bt:Image size="80" resid="Review.Icon80" /></Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>openReview</FunctionName></Action>
+                  <Icon>
+                    <bt:Image size="16" resid="Agent.Icon16" />
+                    <bt:Image size="32" resid="Agent.Icon32" />
+                    <bt:Image size="80" resid="Agent.Icon80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>WordOllama.Taskpane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
                 </Control>
               </Group>
-              <Group id="WordOllama.JS.SettingsGroup">
-                <Label resid="SettingsGroup.Label" /><Icon><bt:Image size="16" resid="SettingsGroup.Icon16" /><bt:Image size="32" resid="SettingsGroup.Icon32" /><bt:Image size="80" resid="SettingsGroup.Icon80" /></Icon>
-                <Control xsi:type="Button" id="WordOllama.JS.Settings"><Label resid="Settings.Label" /><Supertip><Title resid="Settings.Label" /><Description resid="Workflow.Tooltip" /></Supertip><Icon><bt:Image size="16" resid="Settings.Icon16" /><bt:Image size="32" resid="Settings.Icon32" /><bt:Image size="80" resid="Settings.Icon80" /></Icon><Action xsi:type="ExecuteFunction"><FunctionName>openSettingsDialog</FunctionName></Action></Control>
-              </Group>
-              <Label resid="Tab.Label" />
-            </CustomTab>
+            </OfficeTab>
           </ExtensionPoint>
         </DesktopFormFactor>
       </Host>

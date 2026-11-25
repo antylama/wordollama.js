@@ -2001,7 +2001,7 @@ label,
   display: grid;
   width: min(320px, 100%);
   height: auto;
-  margin: 0;
+  margin: 0 auto;
   padding: 28px 12px;
   place-content: center;
 }
@@ -2189,13 +2189,6 @@ progress::-webkit-progress-value {
 :root[data-surface="create"] .main-tabs,
 :root[data-surface="edit"] .main-tabs,
 :root[data-surface="legal"] .main-tabs {
-  display: none;
-}
-:root[data-surface="agent"] #open-settings,
-:root[data-surface="create"] #open-settings,
-:root[data-surface="edit"] #open-settings,
-:root[data-surface="review"] #open-settings,
-:root[data-surface="legal"] #open-settings {
   display: none;
 }
 :root[data-surface="create"] .workflow-workspace-header,
