@@ -1,3 +1,3 @@
-# 合同必备条款
+# Essential Contract Clauses
 
-检查主体信息、标的与验收、价款与支付、履行期限与地点、违约责任、争议解决和生效条件；按场景补充保密、知识产权、不可抗力、通知送达等条款。缺失或事实不明时添加批注，并说明需要用户确认的信息。
+Check party details, subject matter and acceptance criteria, pricing and payment terms, performance timeline and location, breach/liability, dispute resolution, and effective conditions; where applicable, also verify confidentiality, intellectual property, force majeure, and notice provisions. When clauses are missing or facts are unclear, add a comment explaining what the user needs to confirm.
