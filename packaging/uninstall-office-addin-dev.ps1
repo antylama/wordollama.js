@@ -6,6 +6,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if ($null -eq (Get-Variable -Name IsWindows -ErrorAction SilentlyContinue)) {
+    $IsWindows = [System.Environment]::OSVersion.Platform -match "Win"
+}
 $expectedAddinId = "4d2a7c5e-2d2a-4a1a-8b72-6a1cf4f7b701"
 $addinFileName = "WordOllama.JS.xml"
 
