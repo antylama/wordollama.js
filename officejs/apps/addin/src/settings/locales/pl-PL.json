@@ -994,7 +994,7 @@
       "allow": "Zezwól",
       "allowOnce": "Zezwól raz",
       "allowAgentRun": "Zezwól w tym uruchomieniu",
-      "permissionScopeHint": "„Zezwól raz” dotyczy tylko tego żądania. „Zezwól w tym uruchomieniu” zapamiętuje ten zestaw parametrów do końca bieżącego zadania.",
+      "permissionScopeHint": "„Zezwól raz” dotyczy tylko tego żądania. „Zezwól w tym uruchomieniu” zapamiętuje zgodę na to narzędzie do końca bieżącego zadania.",
       "permissionReused": "Zezwolono na powtórną operację {{name}} na podstawie zgody zapamiętanej dla tego uruchomienia.",
       "fullAccessConfirm": "Pełny dostęp pozwala tej sesji Agenta pomijać potwierdzanie narzędzi oraz korzystać z sieci, procesów lokalnych i zasobów zewnętrznych. Kontynuować?",
       "enableForSession": "Włącz dla tej sesji",

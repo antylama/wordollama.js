@@ -986,7 +986,7 @@
       "allow": "Allow",
       "allowOnce": "Allow once",
       "allowAgentRun": "Allow for this run",
-      "permissionScopeHint": "Allow once applies only to this request. Allow for this run remembers only this exact tool and parameter combination until the current Agent run ends; it is not saved after restart.",
+      "permissionScopeHint": "Allow once applies only to this request. Allow for this run remembers this tool until the current Agent run ends; it is not saved after restart.",
       "permissionReused": "Allowed the repeated {{name}} operation using the permission remembered for this Agent run.",
       "fullAccessConfirm": "Full access lets this Agent session skip per-tool approval and may access the network, local processes, or external resources. Only you can enable it. Continue?",
       "enableForSession": "Enable for this session",

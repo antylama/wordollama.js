@@ -120,7 +120,6 @@ import {
   updateStreamingText,
 } from "./streaming-ui";
 import {
-  buildPermissionScopeKey,
   formatPermissionParams,
 } from "./permission-scope";
 
@@ -2925,7 +2924,7 @@ async function consumeAgentSession(
       });
     } else if (event.type === "permission_request") {
       const permission = event.data as { callId: string; name: string; params: unknown };
-      const permissionScopeKey = buildPermissionScopeKey(permission.name, permission.params);
+      const permissionScopeKey = permission.name;
       if (approvedForAgentRun.has(permissionScopeKey)) {
         appendMessage(
           i18n.t("taskpane.agent.permissionReused", { name: permission.name }),
