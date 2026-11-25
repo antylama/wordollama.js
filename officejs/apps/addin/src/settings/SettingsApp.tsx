@@ -2562,7 +2562,9 @@ export function SettingsApp() {
       <div className="settings-app" data-theme={darkTheme ? "wordollama-dark" : "wordollama"}>
         <header className="settings-header">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="settings-brand-mark" aria-hidden="true">W</span>
+            <span className="settings-brand-mark" aria-hidden="true">
+              <Bot size={30} strokeWidth={1.8} aria-hidden="true" />
+            </span>
             <div>
               <strong className="block text-sm">{t("app.title")}</strong>
               <span className="block text-[10px] opacity-55">{t("app.settings")}</span>

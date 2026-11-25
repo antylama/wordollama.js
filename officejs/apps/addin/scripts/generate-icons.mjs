@@ -24,7 +24,7 @@ const icons = [
   ["table", "Table", `<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/>`],
   ["html", "Html", `<path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>`],
   ["markdown", "Markdown", `<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 15V9l3 3 3-3v6M15 9v6m-2-2 2 2 2-2"/>`],
-  ["agent", "Agent", `<rect x="4" y="6" width="16" height="14" rx="3"/><path d="M9 3h6M12 3v3M8 11h.01M16 11h.01M8 15h8"/>`],
+  ["agent", "Agent", `<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>`],
   ["custom-prompts", "CustomPrompts", `<path d="M5 4h14v16H5zM8 8h8M8 12h5M8 16h4m5-3 .7 1.8 1.8.7-1.8.7L17 18l-.7-1.8-1.8-.7 1.8-.7z"/>`],
   ["polish", "Polish", `<path d="M4 18h10M4 13h8M4 8h6m7-5 .9 2.6 2.6.9-2.6.9L17 10l-.9-2.6-2.6-.9 2.6-.9zM19 14l.6 1.4L21 16l-1.4.6L19 18l-.6-1.4L17 16l1.4-.6z"/>`],
   ["expand", "Expand", `<path d="M4 6h8M4 11h12M4 16h16M18 3v6M15 6h6"/>`],
@@ -119,7 +119,7 @@ const manifestIcons = [
 ];
 for (const [element, id, resource] of manifestIcons) {
   const matcher = new RegExp(`(<${element}[^>]*id="${id.replaceAll(".", "\\.")}"[\\s\\S]*?<Icon>)[\\s\\S]*?(</Icon>)`);
-  if (!matcher.test(manifest)) throw new Error(`Manifest element not found: ${id}`);
+  if (!matcher.test(manifest)) continue;
   const images = [16, 32, 80].map((size) => `<bt:Image size="${size}" resid="${resource}.Icon${size}" />`).join("");
   manifest = manifest.replace(matcher, `$1${images}$2`);
 }

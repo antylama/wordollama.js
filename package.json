@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node start-dev.mjs"
+    "start": "node start-dev.mjs",
+    "icons:generate": "npm --prefix officejs/apps/addin run icons:generate"
   }
 }

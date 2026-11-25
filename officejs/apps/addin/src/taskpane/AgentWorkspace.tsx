@@ -1,5 +1,4 @@
-import { ArrowUp, ImagePlus, Target, Undo2 } from "lucide-react";
-import { FeatureIcon } from "./FeatureIcon";
+import { ArrowUp, Bot, ImagePlus, Target, Undo2 } from "lucide-react";
 
 export function AgentWorkspace() {
   return (
@@ -61,7 +60,7 @@ export function AgentWorkspace() {
         <div id="agent-output" className="chat-thread" aria-live="polite">
           <div id="empty-chat-state" className="empty-state">
             <span className="empty-icon" aria-hidden="true">
-              <FeatureIcon name="agent" size={48} />
+              <Bot size={48} strokeWidth={1.6} aria-hidden="true" />
             </span>
             <h2>WordOllama.JS Agent</h2>
             <p className="muted" data-i18n="taskpane.agent.emptyHint">

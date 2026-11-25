@@ -133,14 +133,12 @@ body {
 
 .settings-brand-mark {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: auto;
+  height: auto;
   place-items: center;
-  border-radius: 8px;
-  background: var(--color-primary);
-  color: var(--color-primary-content);
-  font-size: 17px;
-  font-weight: 750;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-primary);
 }
 
 .settings-setup-trigger {
