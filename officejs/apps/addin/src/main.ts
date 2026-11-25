@@ -2774,11 +2774,13 @@ if (wpsHost) {
   officeReady = true;
   hostStatus.textContent = "";
   hostStatus.title = i18n.t("taskpane.agent.hostConnected", { host: "WPS Writer" });
+  restoreChatHistory();
   initializeWorkflowRoute();
   void activateBridgeSession().catch((error) =>
     appendDiagnostic("bridge", `automatic pairing failed: ${error instanceof Error ? error.message : String(error)}`));
 } else if (typeof Office === "undefined") {
   hostStatus.textContent = "";
+  restoreChatHistory();
   void refreshRuntimeStatus();
   initializeWorkflowRoute();
 } else {
@@ -2788,6 +2790,7 @@ if (wpsHost) {
     hostStatus.title = info.host
       ? i18n.t("taskpane.agent.hostConnected", { host: info.host })
       : "";
+    restoreChatHistory();
     initializeWorkflowRoute();
     if (Office.context.requirements?.isSetSupported?.("SharedRuntime", "1.1")) {
       void Office.addin.setStartupBehavior(Office.StartupBehavior.load).catch((error) =>
@@ -3142,18 +3145,31 @@ const MAX_CHAT_HISTORY_ITEM_CHARS = 1200;
 const MAX_CHAT_HISTORY_TOTAL_CHARS = 32000;
 const AGENT_CHAT_HISTORY_STORAGE_KEY = "wordollama-agent-chat-history";
 const agentChatHistory: Array<{ role: "User" | "Assistant"; text: string }> = [];
+let chatHistoryRestored = false;
+
+function getChatHistoryTarget(): { storage: Storage; key: string } {
+  const docUrl = typeof Office !== "undefined" ? String(Office.context?.document?.url ?? "").trim() : "";
+  if (docUrl) {
+    return { storage: window.localStorage, key: `${AGENT_CHAT_HISTORY_STORAGE_KEY}:${docUrl}` };
+  }
+  return { storage: window.sessionStorage, key: AGENT_CHAT_HISTORY_STORAGE_KEY };
+}
 
 function saveChatHistory(): void {
   try {
-    window.localStorage.setItem(AGENT_CHAT_HISTORY_STORAGE_KEY, JSON.stringify(agentChatHistory));
+    const { storage, key } = getChatHistoryTarget();
+    storage.setItem(key, JSON.stringify(agentChatHistory));
   } catch {
     // Ignore storage quota errors in embedded WebView.
   }
 }
 
 function restoreChatHistory(): void {
+  if (chatHistoryRestored) return;
+  chatHistoryRestored = true;
   try {
-    const raw = window.localStorage.getItem(AGENT_CHAT_HISTORY_STORAGE_KEY);
+    const { storage, key } = getChatHistoryTarget();
+    const raw = storage.getItem(key);
     if (!raw) return;
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return;
@@ -3189,8 +3205,6 @@ function pushChatHistory(role: "User" | "Assistant", rawText: string): void {
   }
   saveChatHistory();
 }
-
-restoreChatHistory();
 
 function buildRequirementWithHistory(requirement: string, maxEntries: number): string {
   const limit = Math.max(0, Math.min(200, Math.trunc(maxEntries)));
@@ -3416,7 +3430,8 @@ required<HTMLButtonElement>("#discard-agent-session").addEventListener("click", 
 function clearAgentView(): void {
   agentChatHistory.length = 0;
   try {
-    window.localStorage.removeItem(AGENT_CHAT_HISTORY_STORAGE_KEY);
+    const { storage, key } = getChatHistoryTarget();
+    storage.removeItem(key);
   } catch {
     // Ignore storage errors.
   }
