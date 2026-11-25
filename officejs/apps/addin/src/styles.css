@@ -648,6 +648,9 @@ textarea:not(.textarea) { resize: vertical; }
 .notice { padding: 8px; border: 1px solid #bfdbfe; border-radius: 7px; background: #eff6ff; color: #1e40af; font-size: 11px; }
 .workflow-banner { margin: 10px 12px 0; padding: 10px 12px; border: 1px solid #bfdbfe; border-radius: 9px; background: #eff6ff; color: #1e3a8a; }
 .workflow-banner p { margin: 4px 0 0; font-size: 11px; }
+#agent-recovery.workflow-banner { display: grid; grid-auto-flow: row; justify-items: stretch; gap: 6px; }
+#agent-recovery.workflow-banner p { margin: 0; }
+#agent-recovery.workflow-banner .action-row { margin-top: 2px; }
 .text-workflow-workspace { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; }
 .translation-workspace {
   flex: 1;
