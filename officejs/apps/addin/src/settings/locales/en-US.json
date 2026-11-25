@@ -987,7 +987,10 @@
       "notConfigured": "Not configured",
       "useSkill": "Use Skill “{{name}}” to complete:",
       "stopRequested": "A stop request was sent.",
-      "stopping": "Stopping…"
+      "stopping": "Stopping…",
+      "chatHistory": "Chat history",
+      "chatHistoryEmpty": "No saved chats yet",
+      "deleteChat": "Delete chat"
     },
     "runtime": {
       "connecting": "Connecting to local service…",

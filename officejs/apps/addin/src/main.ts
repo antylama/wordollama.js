@@ -3137,16 +3137,29 @@ function appendCreateSkillAction(
 const MAX_CHAT_HISTORY_ENTRIES = 300;
 const MAX_CHAT_HISTORY_ITEM_CHARS = 1200;
 const MAX_CHAT_HISTORY_TOTAL_CHARS = 32000;
+const MAX_SAVED_CHATS = 10;
 const AGENT_CHAT_HISTORY_STORAGE_KEY = "wordollama-agent-chat-history";
+const AGENT_CHAT_SESSIONS_STORAGE_KEY = "wordollama-agent-chat-sessions";
 type ChatHistoryRole = "User" | "Assistant" | "System" | "Activity" | "Error";
 interface ChatHistoryEntry {
   role: ChatHistoryRole;
   text: string;
   failed?: boolean;
 }
+interface SavedChatSession {
+  id: string;
+  title: string;
+  updatedAt: string;
+  entries: ChatHistoryEntry[];
+}
 const agentChatHistory: ChatHistoryEntry[] = [];
 const bubbleHistoryEntries = new WeakMap<HTMLDivElement, ChatHistoryEntry>();
+let activeChatId = createChatId();
 let chatHistoryRestored = false;
+
+function createChatId(): string {
+  return `chat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
 
 function getChatHistoryTarget(): { storage: Storage; key: string } {
   const docUrl = typeof Office !== "undefined" ? String(Office.context?.document?.url ?? "").trim() : "";
@@ -3156,12 +3169,116 @@ function getChatHistoryTarget(): { storage: Storage; key: string } {
   return { storage: window.sessionStorage, key: AGENT_CHAT_HISTORY_STORAGE_KEY };
 }
 
+function getSavedChatsTarget(): { storage: Storage; key: string } {
+  const docUrl = typeof Office !== "undefined" ? String(Office.context?.document?.url ?? "").trim() : "";
+  if (docUrl) {
+    return { storage: window.localStorage, key: `${AGENT_CHAT_SESSIONS_STORAGE_KEY}:${docUrl}` };
+  }
+  return { storage: window.sessionStorage, key: AGENT_CHAT_SESSIONS_STORAGE_KEY };
+}
+
+function sanitizeChatEntries(rawEntries: unknown): ChatHistoryEntry[] {
+  if (!Array.isArray(rawEntries)) return [];
+  const entries: ChatHistoryEntry[] = [];
+  for (const item of rawEntries) {
+    if (
+      item &&
+      typeof item === "object" &&
+      (item.role === "User" ||
+        item.role === "Assistant" ||
+        item.role === "System" ||
+        item.role === "Activity" ||
+        item.role === "Error") &&
+      typeof item.text === "string" &&
+      item.text.trim()
+    ) {
+      entries.push({
+        role: item.role,
+        text: item.text,
+        failed: item.failed === true ? true : undefined,
+      });
+    }
+  }
+  return entries.slice(-MAX_CHAT_HISTORY_ENTRIES);
+}
+
+function readSavedChats(): SavedChatSession[] {
+  try {
+    const { storage, key } = getSavedChatsTarget();
+    const raw = storage.getItem(key);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    const sessions: SavedChatSession[] = [];
+    for (const item of parsed) {
+      if (!item || typeof item !== "object" || typeof item.id !== "string") continue;
+      const entries = sanitizeChatEntries(item.entries);
+      if (entries.length === 0) continue;
+      sessions.push({
+        id: item.id,
+        title: typeof item.title === "string" && item.title.trim() ? item.title.trim() : deriveChatTitle(entries),
+        updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : new Date().toISOString(),
+        entries,
+      });
+    }
+    return sessions.slice(0, MAX_SAVED_CHATS);
+  } catch {
+    return [];
+  }
+}
+
+function writeSavedChats(sessions: SavedChatSession[]): void {
+  try {
+    const { storage, key } = getSavedChatsTarget();
+    storage.setItem(key, JSON.stringify(sessions.slice(0, MAX_SAVED_CHATS)));
+  } catch {
+    // Ignore storage quota errors in embedded WebView.
+  }
+}
+
+function deriveChatTitle(entries: ChatHistoryEntry[]): string {
+  const firstUser = entries.find((entry) => entry.role === "User")?.text
+    ?? entries[0]?.text
+    ?? "";
+  const singleLine = firstUser.replace(/\s+/g, " ").trim();
+  return singleLine.length > 52 ? `${singleLine.slice(0, 52)}…` : singleLine || "Chat";
+}
+
 function saveChatHistory(): void {
   try {
     const { storage, key } = getChatHistoryTarget();
     storage.setItem(key, JSON.stringify(agentChatHistory));
+    if (agentChatHistory.length > 0) {
+      const existing = readSavedChats().filter((session) => session.id !== activeChatId);
+      existing.unshift({
+        id: activeChatId,
+        title: deriveChatTitle(agentChatHistory),
+        updatedAt: new Date().toISOString(),
+        entries: [...agentChatHistory],
+      });
+      writeSavedChats(existing);
+    }
   } catch {
     // Ignore storage quota errors in embedded WebView.
+  }
+}
+
+function renderChatHistoryEntries(entries: ChatHistoryEntry[]): void {
+  agentOutput.replaceChildren(emptyChatState);
+  for (const entry of entries) {
+    const kind =
+      entry.role === "User"
+        ? "user"
+        : entry.role === "Assistant"
+          ? "agent"
+          : entry.role === "System"
+            ? "system"
+            : entry.role === "Activity"
+              ? "activity"
+              : "error-message";
+    const bubble = appendMessage(entry.text, kind, "", false);
+    bubbleHistoryEntries.set(bubble, entry);
+    if (entry.failed) bubble.closest(".chat-message")?.classList.add("failed");
   }
 }
 
@@ -3172,43 +3289,15 @@ function restoreChatHistory(): void {
     const { storage, key } = getChatHistoryTarget();
     const raw = storage.getItem(key);
     if (!raw) return;
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return;
-    for (const item of parsed) {
-      if (
-        item &&
-        typeof item === "object" &&
-        (item.role === "User" ||
-          item.role === "Assistant" ||
-          item.role === "System" ||
-          item.role === "Activity" ||
-          item.role === "Error") &&
-        typeof item.text === "string" &&
-        item.text.trim()
-      ) {
-        const entry: ChatHistoryEntry = {
-          role: item.role,
-          text: item.text,
-          failed: item.failed === true ? true : undefined,
-        };
-        agentChatHistory.push(entry);
-        const kind =
-          item.role === "User"
-            ? "user"
-            : item.role === "Assistant"
-              ? "agent"
-              : item.role === "System"
-                ? "system"
-                : item.role === "Activity"
-                  ? "activity"
-                  : "error-message";
-        const bubble = appendMessage(item.text, kind, "", false);
-        if (entry.failed) bubble.closest(".chat-message")?.classList.add("failed");
-      }
-    }
-    if (agentChatHistory.length > MAX_CHAT_HISTORY_ENTRIES) {
-      agentChatHistory.splice(0, agentChatHistory.length - MAX_CHAT_HISTORY_ENTRIES);
-    }
+    const entries = sanitizeChatEntries(JSON.parse(raw) as unknown);
+    if (entries.length === 0) return;
+    agentChatHistory.push(...entries);
+    const matching = readSavedChats().find((session) =>
+      session.entries.length === entries.length &&
+      session.entries[0]?.text === entries[0]?.text);
+    if (matching) activeChatId = matching.id;
+    else saveChatHistory();
+    renderChatHistoryEntries(agentChatHistory);
   } catch {
     // Ignore corrupted storage entries.
   }
@@ -3460,6 +3549,7 @@ required<HTMLButtonElement>("#discard-agent-session").addEventListener("click", 
 
 function clearAgentView(): void {
   agentChatHistory.length = 0;
+  activeChatId = createChatId();
   try {
     const { storage, key } = getChatHistoryTarget();
     storage.removeItem(key);
@@ -3469,10 +3559,103 @@ function clearAgentView(): void {
   agentOutput.replaceChildren(emptyChatState);
 }
 
+function closeChatHistoryMenu(): void {
+  const menu = required<HTMLDivElement>("#chat-history-menu");
+  const toggle = required<HTMLButtonElement>("#chat-history-toggle");
+  menu.hidden = true;
+  toggle.setAttribute("aria-expanded", "false");
+}
+
+function switchToSavedChat(sessionId: string): void {
+  const target = readSavedChats().find((session) => session.id === sessionId);
+  if (!target) return;
+  void (async () => {
+    if (activeSessionId) await runtime.cancelAgent(activeSessionId);
+    agentChatHistory.length = 0;
+    agentChatHistory.push(...target.entries);
+    activeChatId = target.id;
+    renderChatHistoryEntries(agentChatHistory);
+    saveChatHistory();
+    closeChatHistoryMenu();
+  })().catch(showError);
+}
+
+function deleteSavedChat(sessionId: string): void {
+  const remaining = readSavedChats().filter((session) => session.id !== sessionId);
+  writeSavedChats(remaining);
+  if (sessionId === activeChatId) clearAgentView();
+  renderChatHistoryMenu();
+}
+
+function renderChatHistoryMenu(): void {
+  const menu = required<HTMLDivElement>("#chat-history-menu");
+  const sessions = readSavedChats();
+  if (sessions.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "chat-history-empty";
+    empty.textContent = i18n.t("taskpane.agent.chatHistoryEmpty");
+    menu.replaceChildren(empty);
+    return;
+  }
+  const rows = sessions.map((session) => {
+    const row = document.createElement("div");
+    row.className = `chat-history-item${session.id === activeChatId && agentChatHistory.length > 0 ? " active" : ""}`;
+    const select = document.createElement("button");
+    select.type = "button";
+    select.className = "chat-history-select";
+    select.setAttribute("role", "menuitem");
+    const title = document.createElement("span");
+    title.className = "chat-history-title";
+    title.textContent = session.title;
+    const meta = document.createElement("span");
+    meta.className = "chat-history-meta";
+    const parsedDate = new Date(session.updatedAt);
+    meta.textContent = Number.isNaN(parsedDate.getTime())
+      ? ""
+      : parsedDate.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    select.append(title, meta);
+    select.addEventListener("click", () => switchToSavedChat(session.id));
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "chat-history-delete";
+    remove.setAttribute("aria-label", i18n.t("taskpane.agent.deleteChat"));
+    remove.title = i18n.t("taskpane.agent.deleteChat");
+    remove.textContent = "×";
+    remove.addEventListener("click", (event) => {
+      event.stopPropagation();
+      deleteSavedChat(session.id);
+    });
+    row.append(select, remove);
+    return row;
+  });
+  menu.replaceChildren(...rows);
+}
+
+required<HTMLButtonElement>("#chat-history-toggle").addEventListener("click", (event) => {
+  event.stopPropagation();
+  const menu = required<HTMLDivElement>("#chat-history-menu");
+  const toggle = required<HTMLButtonElement>("#chat-history-toggle");
+  const nextOpen = menu.hidden;
+  if (nextOpen) renderChatHistoryMenu();
+  menu.hidden = !nextOpen;
+  toggle.setAttribute("aria-expanded", String(nextOpen));
+});
+
+document.addEventListener("click", (event) => {
+  const menu = document.getElementById("chat-history-menu");
+  const toggle = document.getElementById("chat-history-toggle");
+  if (!menu || menu.hidden) return;
+  const target = event.target as Node | null;
+  if (target && (menu.contains(target) || toggle?.contains(target))) return;
+  closeChatHistoryMenu();
+});
+
 function startNewChat(): void {
   void (async () => {
     if (activeSessionId) await runtime.cancelAgent(activeSessionId);
     clearAgentView();
+    closeChatHistoryMenu();
     agentRequirement.focus();
   })().catch(showError);
 }

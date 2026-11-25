@@ -987,7 +987,10 @@
       "notConfigured": "Nie skonfigurowano",
       "useSkill": "Użyj Skilla „{{name}}”, aby wykonać:",
       "stopRequested": "Wysłano żądanie zatrzymania.",
-      "stopping": "Zatrzymywanie…"
+      "stopping": "Zatrzymywanie…",
+      "chatHistory": "Historia czatów",
+      "chatHistoryEmpty": "Brak zapisanych czatów",
+      "deleteChat": "Usuń czat"
     },
     "runtime": {
       "connecting": "Łączenie z usługą lokalną…",
