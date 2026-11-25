@@ -1,0 +1,8 @@
+{
+  "name": "wordollama-dev-launcher",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node start-dev.mjs"
+  }
+}
