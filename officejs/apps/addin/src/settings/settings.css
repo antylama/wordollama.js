@@ -538,7 +538,10 @@ body {
   font-weight: 550;
 }
 
-.settings-sidebar .btn.settings-nav-active {
+.settings-sidebar .btn.settings-nav-active,
+.settings-sidebar .btn.settings-nav-active:hover,
+.settings-sidebar .btn.settings-nav-active:focus-visible,
+.settings-sidebar .btn.settings-nav-active:active {
   background: var(--color-primary);
   color: var(--color-primary-content);
 }
