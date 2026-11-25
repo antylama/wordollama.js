@@ -8,6 +8,26 @@ import type { DocumentDiff } from "./contracts.ts";
 import i18n from "./i18n.ts";
 import { buildTextRevisionHunks, occurrenceBefore } from "./text-revision-diff.ts";
 
+function normalizeHexColor(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed || /^auto$/i.test(trimmed)) return undefined;
+  const named: Record<string, string> = {
+    black: "#000000",
+    white: "#FFFFFF",
+    red: "#FF0000",
+    gray: "#808080",
+    grey: "#808080",
+  };
+  const byName = named[trimmed.toLowerCase()];
+  if (byName) return byName;
+  const hex = trimmed.startsWith("#") ? trimmed.slice(1) : trimmed;
+  if (/^[0-9a-fA-F]{6}$/.test(hex)) return `#${hex.toUpperCase()}`;
+  if (/^[0-9a-fA-F]{3}$/.test(hex)) {
+    return `#${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}`.toUpperCase();
+  }
+  return trimmed;
+}
+
 export interface WordSelection {
   text: string;
   documentUrl?: string;
@@ -269,18 +289,8 @@ export class OfficeJsWordAdapter {
   }
 
   async beginTrackedChanges(): Promise<string | null> {
-    if (!Office.context?.requirements?.isSetSupported?.("WordApi", "1.4")) return null;
-    return Word.run(async (context) => {
-      const document = context.document;
-      document.load("changeTrackingMode");
-      await context.sync();
-      const previous = String(document.changeTrackingMode);
-      if (previous !== Word.ChangeTrackingMode.trackAll) {
-        document.changeTrackingMode = Word.ChangeTrackingMode.trackAll;
-        await context.sync();
-      }
-      return previous;
-    });
+    // Respect the user's current Track Changes setting instead of forcing trackAll.
+    return null;
   }
 
   async restoreTrackedChanges(previous: string | null): Promise<void> {
@@ -1703,19 +1713,34 @@ export class OfficeJsWordAdapter {
       await context.sync();
       const table = tables.items[tableIndex - 1];
       if (!table) throw new Error(`table ${tableIndex} is out of range`);
-      if (options.styleName) table.style = options.styleName;
+      if (options.styleName) {
+        const normalizedStyle = options.styleName.trim();
+        const compactStyle = normalizedStyle.replace(/\s+/g, "");
+        if (/^(TableGrid|TableGridLight|PlainTable\d+|GridTable\d+.*|ListTable\d+.*|Normal)$/i.test(compactStyle)) {
+          table.styleBuiltIn = compactStyle as Word.BuiltInStyleName;
+        } else {
+          table.style = normalizedStyle;
+        }
+      }
       if (typeof options.headerRows === "number") table.headerRowCount = Math.max(0, options.headerRows);
       if (options.alignment) table.alignment = options.alignment as Word.Alignment;
       if (options.cellAlignment) table.horizontalAlignment = options.cellAlignment as Word.Alignment;
       if (options.verticalAlignment) {
         table.verticalAlignment = options.verticalAlignment as Word.VerticalAlignment;
       }
-      if (options.shadingColor) table.shadingColor = options.shadingColor;
+      if (options.shadingColor) {
+        table.shadingColor = normalizeHexColor(options.shadingColor) ?? options.shadingColor;
+      }
       if (options.borderColor || typeof options.borderWidth === "number") {
-        const border = table.getBorder(Word.BorderLocation.all);
-        border.type = Word.BorderType.single;
-        if (options.borderColor) border.color = options.borderColor;
-        if (typeof options.borderWidth === "number") border.width = options.borderWidth;
+        const normalizedBorderColor = options.borderColor ? normalizeHexColor(options.borderColor) : undefined;
+        // Word Desktop throws InvalidArgument on BorderLocation.all for table.getBorder;
+        // outside + inside sets all exterior and interior gridlines reliably.
+        for (const location of [Word.BorderLocation.outside, Word.BorderLocation.inside]) {
+          const border = table.getBorder(location);
+          border.type = Word.BorderType.single;
+          if (normalizedBorderColor) border.color = normalizedBorderColor;
+          if (typeof options.borderWidth === "number") border.width = options.borderWidth;
+        }
       }
       const autofit = options.autofit?.toLocaleLowerCase();
       if (autofit === "window") {

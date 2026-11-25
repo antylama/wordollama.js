@@ -421,11 +421,8 @@ export class WpsWordAdapter extends OfficeJsWordAdapter {
   }
 
   override async beginTrackedChanges(): Promise<string | null> {
-    const document = this.application().ActiveDocument;
-    if (!document || !("TrackRevisions" in document)) return null;
-    const previous = document.TrackRevisions ? "true" : "false";
-    document.TrackRevisions = true;
-    return previous;
+    // Respect the user's current Track Changes setting instead of forcing TrackRevisions.
+    return null;
   }
 
   override async restoreTrackedChanges(previous: string | null): Promise<void> {
