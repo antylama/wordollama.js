@@ -102,8 +102,8 @@ function openSettingsDialog(event: DialogCommandEvent): void {
   Office.context.ui.displayDialogAsync(
     dialogUrl.href,
     {
-      height: 78,
-      width: 72,
+      height: 68,
+      width: 58,
       displayInIframe: true,
     },
     (result) => {

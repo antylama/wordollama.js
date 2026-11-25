@@ -1002,7 +1002,7 @@
       "executionFailed": "Agent execution failed",
       "instructionRequired": "Enter an Agent instruction",
       "creatingTask": "Creating task…",
-      "trackingUnsupported": "This Word host does not support WordApi 1.4 tracked-change control. Write operations can continue, but tracked changes cannot be enabled automatically.",
+      "trackingUnsupported": "Tip: enable Track Changes in Word if you want to review every edit before keeping it.",
       "running": "Agent is running",
       "restoreTrackingFailed": "Could not restore Word’s tracked-change mode",
       "resuming": "Resuming the unfinished task from iteration {{iteration}}.",

@@ -1002,7 +1002,7 @@
       "executionFailed": "Agent 执行失败",
       "instructionRequired": "请输入 Agent 指令",
       "creatingTask": "正在创建任务…",
-      "trackingUnsupported": "当前 Word Host 不支持 WordApi 1.4 修订模式控制；写操作仍可执行，但无法自动开启修订。",
+      "trackingUnsupported": "提示：如需审阅每处修改，可在 Word 中开启“修订”模式。",
       "running": "Agent 正在执行",
       "restoreTrackingFailed": "无法恢复 Word 修订模式",
       "resuming": "正在从第 {{iteration}} 轮继续未完成任务。",

@@ -723,13 +723,13 @@ function openReactSettingsDialog(): void {
   if (settingsOfficeDialog || (settingsPopup && !settingsPopup.closed)) return;
   const url = new URL("/settings.html", window.location.origin).href;
   if (typeof Office === "undefined" || !Office.context?.ui?.displayDialogAsync) {
-    settingsPopup = window.open(url, "wordollama-settings", "popup,width=1120,height=760,resizable=yes");
+    settingsPopup = window.open(url, "wordollama-settings", "popup,width=880,height=620,resizable=yes");
     if (!settingsPopup) showError(new Error(i18n.t("taskpane.settings.openFailed")));
     return;
   }
   Office.context.ui.displayDialogAsync(
     url,
-    { height: 82, width: 78, displayInIframe: true, promptBeforeOpen: false },
+    { height: 68, width: 58, displayInIframe: true, promptBeforeOpen: false },
     (result) => {
       if (result.status !== Office.AsyncResultStatus.Succeeded || !result.value) {
         showError(new Error(result.error?.message || i18n.t("taskpane.settings.openFailed")));
