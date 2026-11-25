@@ -3021,25 +3021,6 @@ async function consumeAgentSession(
         toolsUsed: [...usedTools],
       }, forceSkillCreationForNextRun);
       forceSkillCreationForNextRun = false;
-      if (event.type === "completed" && successfulWordWrites > 0) {
-        const settings = readLocalSettings("wordollama-general-settings", {
-          suppressDiff: false,
-        });
-        if (!settings.suppressDiff) {
-          const canReadRevisions = word.supportsTool("revisions");
-          if (!canReadRevisions) {
-            appendMessage(
-              i18n.t("taskpane.agent.writesUnsupported", { count: successfulWordWrites }),
-              "system",
-            );
-          } else {
-            appendMessage(
-              i18n.t("taskpane.agent.writesReview", { count: successfulWordWrites }),
-              "system",
-            );
-          }
-        }
-      }
     } else if (event.type === "failed") {
       clearAgentRecovery();
       if (planRevisionRequested) break;

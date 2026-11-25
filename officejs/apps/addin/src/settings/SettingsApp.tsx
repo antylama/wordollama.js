@@ -611,24 +611,6 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
                 placeholder={t("general.outputPreferencePlaceholder")}
               />
             </section>
-            <div className="settings-control-list settings-output-mode">
-              <label className="settings-control-row" htmlFor="output-mode">
-                <span className="settings-control-label">{t("general.outputMode")}</span>
-                <select
-                  id="output-mode"
-                  className="select select-sm"
-                  value={settings.outputMode}
-                  onChange={(event) => update("outputMode", event.currentTarget.value)}
-                >
-                  <option value="Auto">{t("general.outputAuto")}</option>
-                  <option value="InsertBelow">{t("general.insertBelow")}</option>
-                  <option value="InsertBelowWithDiff">{t("general.insertWithDiff")}</option>
-                  <option value="ReplaceOriginal">{t("general.replace")}</option>
-                  <option value="Comment">{t("general.comment")}</option>
-                  <option value="ReviewPane">{t("general.reviewPane")}</option>
-                </select>
-              </label>
-            </div>
           </div>
         </Card>
         <Card title={t("general.behavior")}>
@@ -640,15 +622,6 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
                 type="checkbox"
                 checked={settings.suppressPlan}
                 onChange={(event) => update("suppressPlan", event.currentTarget.checked)}
-              />
-            </label>
-            <label className="settings-control-row">
-              <span className="settings-control-label">{t("general.suppressDiff")}</span>
-              <input
-                className="toggle toggle-primary toggle-sm"
-                type="checkbox"
-                checked={settings.suppressDiff}
-                onChange={(event) => update("suppressDiff", event.currentTarget.checked)}
               />
             </label>
           </div>
