@@ -15,10 +15,18 @@
     "back": "Back",
     "later": "Maybe later",
     "steps": {
-      "0": { "title": "Welcome to WordOllama.JS" },
-      "1": { "title": "Check the local connection" },
-      "2": { "title": "Choose and connect a model" },
-      "3": { "title": "You're ready" }
+      "0": {
+        "title": "Welcome to WordOllama.JS"
+      },
+      "1": {
+        "title": "Check the local connection"
+      },
+      "2": {
+        "title": "Choose and connect a model"
+      },
+      "3": {
+        "title": "You're ready"
+      }
     },
     "welcome": {
       "description": "Connect a model once, then translation, writing, and Agent are ready whenever you open Word.",
@@ -130,33 +138,15 @@
     "uiLanguageEnglish": "English",
     "uiLanguagePolish": "Polski",
     "uiLanguageChinese": "Simplified Chinese",
-    "outputMode": "Default document action",
-    "outputAuto": "Choose automatically",
-    "insertBelow": "Insert below selection",
-    "insertWithDiff": "Insert and show comparison",
-    "replace": "Replace source",
-    "comment": "Add as comment",
-    "reviewPane": "Send to review workspace",
     "memory": "Custom instructions",
     "memoryHint": "Persistent rules and context that AI will always include in every conversation (e.g. tone, role, formatting, terminology).",
-    "autoMemory": "Automatic memory",
-    "autoMemoryConsentTitle": "Enable automatic memory?",
-    "autoMemoryConsentMessage": "After a task completes successfully, WordOllama.JS only considers durable preferences you explicitly wrote. It does not read AI replies or the full document. Enabling this may make one additional call to your selected memory model, then stores approved memories locally. You can disable it and delete memories at any time.",
-    "autoMemoryConsentAllow": "Allow automatic memory",
-    "memoryModel": "Memory model",
-    "memoryModelHint": "Leave empty to use the active model; deleted selections fall back automatically.",
-    "memoryModelActive": "Follow the active model",
     "emptyMemories": "No custom instructions yet",
     "newMemoryPlaceholder": "Enter a persistent instruction or fact for AI to follow",
     "deleteSelected": "Delete selected",
     "deleteAll": "Delete all",
     "selectMemory": "Select instruction: {{memory}}",
-    "outputPreference": "Output preferences",
-    "outputPreferenceHint": "Set the writing conventions AI should follow in its output.",
-    "outputPreferencePlaceholder": "For example: write for a professional audience; keep the tone concise; prefer short paragraphs and lists; preserve domain terminology; minimize semantic changes; cite sources when needed.",
     "darkTheme": "Use dark appearance",
     "suppressPlan": "Run Agent plans without confirmation",
-    "suppressDiff": "Do not show comparison reminders",
     "save": "Save preferences"
   },
   "models": {
@@ -373,14 +363,7 @@
     "networkToolsHint": "Expose the Bridge HTTPS request tool when it is enabled by the local policy.",
     "mcpTools": "Authorized MCP tools",
     "mcpToolsHint": "Expose tools from connected MCP servers that you have allowed.",
-    "enableReview": "Enable silent review",
-    "reviewModel": "Silent-review model",
-    "activeModel": "Follow active model ({{model}})",
-    "noActiveModel": "No active model",
-    "reviewModelHint": "Used only for checking document changes in the background; it does not switch the active model.",
-    "reviewInterval": "Review interval (seconds)",
-    "saveExecution": "Save execution policy",
-    "saveReview": "Save background review"
+    "saveExecution": "Save execution policy"
   },
   "markdown": {
     "title": "Markdown",
@@ -957,8 +940,6 @@
       "instructionPlaceholder": "Enter an instruction, or type / for quick actions…",
       "instruction": "Agent instruction",
       "send": "Send",
-      "goal": "Goal",
-      "goalPlaceholder": "Define an outcome that may take multiple steps…",
       "undoTask": "Undo task",
       "undoTaskDetail": "Restore the document body to its state before this Agent task",
       "undoTaskConfirm": "This replaces the current document body with the snapshot captured before the task and overwrites body edits made afterward. Continue?",
@@ -997,8 +978,6 @@
       "toolComplete": "{{name}} completed",
       "focusTarget": "Go to target",
       "focusTargetUnavailable": "This operation does not have a target that can be located in the document",
-      "writesUnsupported": "Agent completed {{count}} Word write operations. This host cannot read revisions inside the add-in; review the changes from Word’s Review tab.",
-      "writesReview": "Agent completed {{count}} Word write operations. Open Word revisions in the separate WordOllama.JS Document review pane to accept or reject each change.",
       "executionFailed": "Agent execution failed",
       "instructionRequired": "Enter an Agent instruction",
       "creatingTask": "Creating task…",
@@ -1013,7 +992,6 @@
       "newChat": "New chat",
       "newChatHint": "Stop the current task and start a new chat",
       "newChatStarted": "A new chat has started.",
-      "goalHint": "Set or edit the durable goal for this task",
       "selectionHint": "Load the current Word selection into the composer",
       "selectionPrompt": "Work with the following Word selection:\n\n{{text}}\n\n",
       "skillsHint": "Show the Skills available to this Agent",
@@ -1061,7 +1039,7 @@
         "ambiguousOriginal": "The same source text appears more than once, so the target paragraph cannot be identified safely",
         "relocationFailed": "The source location has changed and cannot be uniquely relocated. The operation was stopped.",
         "invalidJsonResult": "The model did not return a recognizable JSON review result",
-      "missingItems": "The model JSON does not contain a review-item array"
+        "missingItems": "The model JSON does not contain a review-item array"
       },
       "issueScan": "Issue scan",
       "workspaceTitle": "Document review",

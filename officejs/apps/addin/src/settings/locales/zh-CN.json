@@ -15,10 +15,18 @@
     "back": "上一步",
     "later": "稍后再说",
     "steps": {
-      "0": { "title": "欢迎使用 WordOllama.JS" },
-      "1": { "title": "检查本机连接" },
-      "2": { "title": "选择并连接模型" },
-      "3": { "title": "已经可以使用" }
+      "0": {
+        "title": "欢迎使用 WordOllama.JS"
+      },
+      "1": {
+        "title": "检查本机连接"
+      },
+      "2": {
+        "title": "选择并连接模型"
+      },
+      "3": {
+        "title": "已经可以使用"
+      }
     },
     "welcome": {
       "description": "只需完成一次连接设置，翻译、写作和 Agent 就能直接使用当前模型。",
@@ -130,33 +138,15 @@
     "uiLanguageEnglish": "English",
     "uiLanguagePolish": "Polski",
     "uiLanguageChinese": "简体中文",
-    "outputMode": "默认文档操作",
-    "outputAuto": "自动选择",
-    "insertBelow": "插入选区下方",
-    "insertWithDiff": "插入并显示对比",
-    "replace": "替换原文",
-    "comment": "添加为批注",
-    "reviewPane": "发送到审阅工作台",
     "memory": "记忆",
     "memoryHint": "您希望 AI 记得哪些？",
-    "autoMemory": "自动记忆",
-    "autoMemoryConsentTitle": "开启自动记忆？",
-    "autoMemoryConsentMessage": "任务成功完成后，WordOllama.JS 只会从您明确写出的长期偏好中筛选候选，不会读取 AI 回复或整篇文档。启用后可能额外调用一次您选择的记忆模型，并把确认后的记忆保存在本机。您可随时关闭并删除记忆。",
-    "autoMemoryConsentAllow": "允许自动记忆",
-    "memoryModel": "记忆模型",
-    "memoryModelHint": "留空时使用当前激活模型；删除所选模型后会自动回退。",
-    "memoryModelActive": "跟随当前激活模型",
     "emptyMemories": "还没有记忆",
     "newMemoryPlaceholder": "输入一条希望 AI 记住的内容",
     "deleteSelected": "删除所选",
     "deleteAll": "全部删除",
     "selectMemory": "选择记忆：{{memory}}",
-    "outputPreference": "输出偏向",
-    "outputPreferenceHint": "设置 AI 输出时应遵循的表达习惯。",
-    "outputPreferencePlaceholder": "例如：面向专业读者；语气简洁克制；优先使用短段落和项目符号；保留行业术语；润色时尽量少改原意；需要引用时标明来源。",
     "darkTheme": "使用深色外观",
     "suppressPlan": "执行 Agent 计划前不再确认",
-    "suppressDiff": "不再显示差异审阅提醒",
     "save": "保存偏好"
   },
   "models": {
@@ -373,14 +363,7 @@
     "networkToolsHint": "本地策略启用后，向 Agent 提供 Bridge 的 HTTPS 请求工具。",
     "mcpTools": "已授权的 MCP 工具",
     "mcpToolsHint": "向 Agent 提供已连接且由您允许的 MCP 服务器工具。",
-    "enableReview": "启用静默审查",
-    "reviewModel": "静默审查模型",
-    "activeModel": "跟随当前模型（{{model}}）",
-    "noActiveModel": "尚未激活模型",
-    "reviewModelHint": "仅用于后台检查文档变化，不会切换当前激活模型。",
-    "reviewInterval": "审查间隔（秒）",
-    "saveExecution": "保存执行策略",
-    "saveReview": "保存静默审查"
+    "saveExecution": "保存执行策略"
   },
   "markdown": {
     "title": "Markdown",
@@ -957,8 +940,6 @@
       "instructionPlaceholder": "输入指令或输入 / 调用快捷动作…",
       "instruction": "Agent 指令",
       "send": "发送",
-      "goal": "目标",
-      "goalPlaceholder": "定义一个可能需要多步完成的结果…",
       "undoTask": "撤销本次任务",
       "undoTaskDetail": "将正文恢复到本次 Agent 任务开始前",
       "undoTaskConfirm": "这会用任务开始前的正文快照替换当前正文，并覆盖任务结束后所做的正文修改。是否继续？",
@@ -997,8 +978,6 @@
       "toolComplete": "{{name}} 已完成",
       "focusTarget": "定位操作位置",
       "focusTargetUnavailable": "无法在文档中定位这次操作的目标",
-      "writesUnsupported": "Agent 已完成 {{count}} 次 Word 写操作。当前宿主不能在加载项内读取修订，请在 Word“审阅”页查看更改。",
-      "writesReview": "Agent 已完成 {{count}} 次 Word 写操作。可在独立的 WordOllama.JS“文档审阅”窗格展开“Word 修订”，逐项接受或拒绝。",
       "executionFailed": "Agent 执行失败",
       "instructionRequired": "请输入 Agent 指令",
       "creatingTask": "正在创建任务…",
@@ -1013,7 +992,6 @@
       "newChat": "新对话",
       "newChatHint": "停止当前任务并开始新对话",
       "newChatStarted": "已开始新对话。",
-      "goalHint": "设置或修改当前任务的长期目标",
       "selectionHint": "把当前 Word 选区载入输入框",
       "selectionPrompt": "请处理以下 Word 选区：\n\n{{text}}\n\n",
       "skillsHint": "查看当前 Agent 可用的 Skills",
@@ -1061,7 +1039,7 @@
         "ambiguousOriginal": "文档中存在多处相同原文，无法安全确定目标段落",
         "relocationFailed": "原文位置已变化且无法唯一重新定位，已停止操作",
         "invalidJsonResult": "模型没有返回可识别的 JSON 审阅结果",
-      "missingItems": "模型 JSON 中缺少审阅项目数组"
+        "missingItems": "模型 JSON 中缺少审阅项目数组"
       },
       "issueScan": "问题扫描",
       "workspaceTitle": "文档审阅",

@@ -302,9 +302,6 @@ const runtimeStatusText = required<HTMLSpanElement>("#runtime-status-text");
 const agentOutput = required<HTMLDivElement>("#agent-output");
 const emptyChatState = required<HTMLDivElement>("#empty-chat-state");
 const agentRequirement = required<HTMLTextAreaElement>("#agent-requirement");
-const agentGoal = required<HTMLInputElement>("#agent-goal");
-const agentGoalRow = required<HTMLDivElement>("#agent-goal-row");
-const toggleAgentGoal = required<HTMLButtonElement>("#toggle-agent-goal");
 const agentRunButton = required<HTMLButtonElement>("#agent-run");
 const agentUndoTaskButton = required<HTMLButtonElement>("#agent-undo-task");
 const agentImageInput = required<HTMLInputElement>("#agent-image-input");
@@ -480,13 +477,6 @@ interface AgentRecoveryState {
   persisted?: boolean;
   goal?: string;
 }
-
-toggleAgentGoal.addEventListener("click", () => {
-  const expanded = toggleAgentGoal.getAttribute("aria-expanded") === "true";
-  toggleAgentGoal.setAttribute("aria-expanded", String(!expanded));
-  agentGoalRow.hidden = expanded;
-  if (!expanded) agentGoal.focus();
-});
 
 function appendDiagnostic(category: string, message: string): void {
   const settings = readLocalSettings("wordollama-diagnostic-settings", { enabled: false });
@@ -3015,11 +3005,11 @@ async function consumeAgentSession(
       const assistantReply = (latestAgentText || event.message || "").trim();
       if (assistantReply) pushChatHistory("Assistant", assistantReply);
       if (event.type === "completed" && sources.size > 0) appendAgentSources([...sources.values()]);
-      if (event.type === "completed") appendCreateSkillAction({
+      if (event.type === "completed" && forceSkillCreationForNextRun) appendCreateSkillAction({
         requirement,
         taskResult: latestAgentText || event.message || "",
         toolsUsed: [...usedTools],
-      }, forceSkillCreationForNextRun);
+      }, true);
       forceSkillCreationForNextRun = false;
     } else if (event.type === "failed") {
       clearAgentRecovery();
@@ -3212,7 +3202,6 @@ async function runAgent(requirement: string): Promise<void> {
   clearError();
   activateTab("chat");
   const imageDataUrl = agentImageDataUrl;
-  const goal = agentGoal.value.trim();
   const skillName = selectedAgentSkillName.trim() || undefined;
   selectedAgentSkillName = "";
   appendMessage(requirement, "user", imageDataUrl);
@@ -3281,7 +3270,6 @@ async function runAgent(requirement: string): Promise<void> {
     const effectiveRequirement = buildRequirementWithHistory(requirement, chatHistoryLimit);
     pushChatHistory("User", requirement);
     const session = await runtime.startAgent(effectiveRequirement, tools.list(), {
-      goal: goal || undefined,
       skillName,
       imageDataUrl: imageDataUrl || undefined,
       requirePlanConfirmation: !currentGeneralSettings.suppressPlan,
@@ -3303,10 +3291,9 @@ async function runAgent(requirement: string): Promise<void> {
       executionMode,
       iteration: 0,
       updatedAt: new Date().toISOString(),
-      goal,
     });
     setAgentRunning(true, i18n.t("taskpane.agent.running"));
-    await consumeAgentSession(session.sessionId, requirement, imageDataUrl, executionMode, goal);
+    await consumeAgentSession(session.sessionId, requirement, imageDataUrl, executionMode);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     appendDiagnostic("agent", message);
@@ -3482,15 +3469,6 @@ function renderCommandMenu(): void {
       label: "/new",
       hint: i18n.t("taskpane.agent.newChatHint"),
       action: startNewChat,
-    },
-    {
-      label: "/goal",
-      hint: i18n.t("taskpane.agent.goalHint"),
-      action: () => {
-        toggleAgentGoal.setAttribute("aria-expanded", "true");
-        agentGoalRow.hidden = false;
-        agentGoal.focus();
-      },
     },
     {
       label: "/selection",
