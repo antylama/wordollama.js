@@ -374,7 +374,6 @@
       "auto": "Tylko bezpieczne odczyty i zapisy w izolowanej przestrzeni roboczej wykonują się automatycznie; dokumenty, sieć, procesy i zasoby zewnętrzne nadal wymagają zgody.",
       "full": "Uwaga: bieżąca sesja Agenta pomija potwierdzanie narzędzi. Każde uruchomienie nadal wymaga drugiego potwierdzenia."
     },
-    "unlimited": "Tryb długich zadań (do 200 iteracji / 30 minut)",
     "externalTools": "Zezwól na procesy lokalne, sieć i narzędzia MCP",
     "localTools": "Autoryzowane procesy lokalne (bez izolacji)",
     "localToolsHint": "Dostępne tylko wtedy, gdy pozwala na to polityka Bridge, ograniczone do listy dozwolonych procesów i potwierdzane przy każdym uruchomieniu.",

@@ -3226,9 +3226,8 @@ async function runAgent(requirement: string): Promise<void> {
   agentUndoTaskButton.hidden = true;
   try {
     const currentAgentSettings = readLocalSettings("wordollama-agent-settings", {
-      maxIterations: 20,
+      maxIterations: 100,
       executionMode: "TrackedChanges" as const,
-      unlimited: false,
       allowExternalTools: false,
       allowLocalTools: false,
       allowNetworkTools: false,
@@ -3287,9 +3286,7 @@ async function runAgent(requirement: string): Promise<void> {
       skillName,
       imageDataUrl: imageDataUrl || undefined,
       requirePlanConfirmation: !currentGeneralSettings.suppressPlan,
-      maxIterations: currentAgentSettings.unlimited
-        ? 0
-        : Math.max(1, Math.min(200, Number(currentAgentSettings.iterations ?? currentAgentSettings.maxIterations) || 20)),
+      maxIterations: Math.max(1, Math.min(200, Number(currentAgentSettings.iterations ?? currentAgentSettings.maxIterations) || 100)),
       executionMode,
       allowExternalTools: legacyExternalTools,
       allowLocalTools: currentAgentSettings.allowLocalTools || legacyExternalTools,

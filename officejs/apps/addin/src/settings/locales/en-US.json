@@ -366,7 +366,6 @@
       "auto": "Only low-risk reads and writes inside the isolated workspace are automatic; documents, network, processes, and external resources still require approval.",
       "full": "Danger: the current Agent session can skip per-tool approval. Every run still requires a second confirmation and prompts cannot enable it."
     },
-    "unlimited": "Long-task mode (up to 200 iterations / 30 minutes)",
     "externalTools": "Allow local processes, network and MCP tools",
     "localTools": "Authorized local processes (not isolated)",
     "localToolsHint": "Available only when separately enabled by the Bridge policy, limited to allowlisted processes, and confirmed per execution. This is not the Agent file workspace and is not presented as a Python/Node sandbox.",

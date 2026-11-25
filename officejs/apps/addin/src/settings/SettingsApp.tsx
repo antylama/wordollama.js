@@ -1882,9 +1882,8 @@ function AgentPage() {
   const [activeProviderId, setActiveProviderId] = useState("");
   const [agent, setAgent] = useState(() => {
     const stored = readStored("wordollama-agent-settings", {
-      maxIterations: 20,
+      maxIterations: 100,
       executionMode: "TrackedChanges",
-      unlimited: false,
       allowExternalTools: false,
       allowLocalTools: false,
       allowNetworkTools: false,
@@ -1900,7 +1899,6 @@ function AgentPage() {
     return {
       maxIterations: stored.iterations ?? stored.maxIterations,
       executionMode: stored.mode ?? stored.executionMode,
-      unlimited: stored.unlimited,
       allowLocalTools: stored.allowLocalTools || legacyExternal,
       allowNetworkTools: stored.allowNetworkTools || legacyExternal,
       allowMcpTools: stored.allowMcpTools || legacyExternal,
@@ -1966,7 +1964,6 @@ function AgentPage() {
               <option value="TrackedChanges">{t("agent.tracked")}</option>
             </select>
             <div className="settings-row-wide settings-switch-list">
-              <SwitchRow label={t("agent.unlimited")} checked={agent.unlimited} onChange={(value) => setAgent({ ...agent, unlimited: value })} />
               <SwitchRow label={t("agent.localTools")} hint={t("agent.localToolsHint")} checked={agent.allowLocalTools} onChange={(value) => setAgent({ ...agent, allowLocalTools: value })} />
               <SwitchRow label={t("agent.networkTools")} hint={t("agent.networkToolsHint")} checked={agent.allowNetworkTools} onChange={(value) => setAgent({ ...agent, allowNetworkTools: value })} />
               <SwitchRow label={t("agent.mcpTools")} hint={t("agent.mcpToolsHint")} checked={agent.allowMcpTools} onChange={(value) => setAgent({ ...agent, allowMcpTools: value })} />
