@@ -2458,8 +2458,11 @@ export function SettingsApp() {
     setSaving(true);
     setFooterStatus(null);
     try {
-      for (const entry of registrations.current.values()) {
-        if (!entry.dirty) continue;
+      const entries = Array.from(registrations.current.values());
+      const toSave = entries.some((entry) => entry.dirty)
+        ? entries.filter((entry) => entry.dirty)
+        : entries;
+      for (const entry of toSave) {
         await entry.save();
         entry.dirty = false;
       }
@@ -2636,7 +2639,7 @@ export function SettingsApp() {
         </main>
         <footer className="settings-footer">
           <div className="settings-footer-actions">
-            <button className="btn btn-primary btn-sm" type="button" disabled={!hasUnsavedChanges || saving} onClick={() => void saveAll()}>
+            <button className="btn btn-primary btn-sm" type="button" disabled={saving} onClick={() => void saveAll()}>
               {saving ? <span className="loading loading-spinner loading-xs" /> : null}
               {saving ? t("common.saving") : t("common.save")}
             </button>
