@@ -937,13 +937,13 @@
       }
     },
     "dialog": {
-      "inputTitle": "Your input is required",
-      "inputPlaceholder": "Enter a response (optional)",
-      "answer": "Response",
-      "confirm": "Confirm",
-      "cancel": "Cancel",
-      "confirmTitle": "Please confirm",
-      "copyFallback": "The browser could not write to the clipboard automatically. Copy the content below manually."
+      "inputTitle": "Wymagana Twoja odpowiedź",
+      "inputPlaceholder": "Wpisz odpowiedź (opcjonalnie)",
+      "answer": "Odpowiedź",
+      "confirm": "Potwierdź",
+      "cancel": "Anuluj",
+      "confirmTitle": "Potwierdź",
+      "copyFallback": "Przeglądarka nie mogła automatycznie zapisać do schowka. Skopiuj poniższą treść ręcznie."
     },
     "agent": {
       "workspace": "Agent workspace",
@@ -1301,7 +1301,7 @@
       "update_toc": "Update an existing table of contents or insert one at the start of the document.",
       "replace_exact_text": "Replace exact document text using the legacy-compatible tool name.",
       "apply_precise_revision": "Apply only the changed hunks to the current selection as tracked Word revisions; fails safely if the selection changed.",
-      "ask_human": "Ask the Word user a question and wait for confirmation or input."
+      "ask_human": "Zadaj użytkownikowi Worda pytanie i poczekaj na wybór lub odpowiedź. Zawsze podaj 1–3 zwięzłe opcje wyboru w parametrze options, aby użytkownik mógł odpowiedzieć jednym kliknięciem."
     },
     "settings": {
       "openFailed": "Unable to open Settings."

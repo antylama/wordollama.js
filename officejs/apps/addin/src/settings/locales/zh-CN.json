@@ -1293,7 +1293,7 @@
       "update_toc": "更新现有目录页码，或在文档开头插入目录。",
       "replace_exact_text": "精确替换文档中的文本，兼容旧工具名称。",
       "apply_precise_revision": "仅将修改片段作为 Word 修订应用到当前选区；选区变化时安全停止。",
-      "ask_human": "向 Word 用户提问并等待人工确认或输入。"
+      "ask_human": "向 Word 用户提问并等待人工确认或输入。尽可能提供 1 到 3 个简短选项，方便用户一键选择。"
     },
     "settings": {
       "openFailed": "无法打开设置。"

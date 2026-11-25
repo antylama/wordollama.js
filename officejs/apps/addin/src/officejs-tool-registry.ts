@@ -456,7 +456,14 @@ const descriptors: OfficeToolDescriptor[] = [
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
-      properties: { question: { type: "string" } },
+      properties: {
+        question: { type: "string" },
+        options: {
+          type: "array",
+          items: { type: "string" },
+          description: "Always provide 1 to 3 short suggested reply options so the user can answer with one click.",
+        },
+      },
       required: ["question"],
     },
   },
@@ -665,7 +672,10 @@ export class OfficeJsToolRegistry {
           ),
         };
       case "ask_human":
-        return this.word.askHuman(this.requireString(args, "question"));
+        return this.word.askHuman(
+          this.requireString(args, "question"),
+          this.optionalStringArray(args, "options"),
+        );
       default:
         throw new Error(`Office.js tool is not registered: ${name}`);
     }

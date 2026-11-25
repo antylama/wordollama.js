@@ -59,7 +59,10 @@ export interface ParagraphResult {
   paragraphs: string[];
 }
 
-export type AskHumanHandler = (question: string) => Promise<string | null> | string | null;
+export type AskHumanHandler = (
+  question: string,
+  options?: string[],
+) => Promise<string | null> | string | null;
 
 export interface TrackedRevision {
   identity: string;
@@ -1785,9 +1788,10 @@ export class OfficeJsWordAdapter {
     });
   }
 
-  async askHuman(question: string): Promise<{ answer: string | null }> {
+  async askHuman(question: string, options?: string[]): Promise<{ answer: string | null }> {
     if (!question.trim()) throw new Error("question is required");
-    const answer = this.askHumanHandler ? await this.askHumanHandler(question) : null;
+    const cleanOptions = options?.map((option) => option.trim()).filter(Boolean).slice(0, 4);
+    const answer = this.askHumanHandler ? await this.askHumanHandler(question, cleanOptions) : null;
     return { answer };
   }
 }

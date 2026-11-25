@@ -2591,7 +2591,7 @@ function requestPermissionDecision(message: string): Promise<PermissionDecision>
   });
 }
 
-function requestHumanInput(question: string): Promise<string | null> {
+function requestHumanInput(question: string, options?: string[]): Promise<string | null> {
   return new Promise((resolve) => {
     const dialog = document.createElement("dialog");
     dialog.className = "human-prompt-dialog";
@@ -2603,6 +2603,12 @@ function requestHumanInput(question: string): Promise<string | null> {
 
     const message = document.createElement("p");
     message.textContent = question;
+
+    let optionList: HTMLDivElement | null = null;
+    if (options && options.length > 0) {
+      optionList = document.createElement("div");
+      optionList.className = "human-prompt-options";
+    }
 
     const input = document.createElement("input");
     input.type = "text";
@@ -2621,7 +2627,11 @@ function requestHumanInput(question: string): Promise<string | null> {
     cancel.className = "btn btn-sm secondary-button";
     cancel.textContent = i18n.t("taskpane.dialog.cancel");
     actions.append(approve, cancel);
-    dialog.append(title, message, input, actions);
+    if (optionList) {
+      dialog.append(title, message, optionList, input, actions);
+    } else {
+      dialog.append(title, message, input, actions);
+    }
     document.body.appendChild(dialog);
 
     let settled = false;
@@ -2632,6 +2642,16 @@ function requestHumanInput(question: string): Promise<string | null> {
       dialog.remove();
       resolve(answer);
     };
+    if (optionList && options) {
+      for (const option of options) {
+        const optionButton = document.createElement("button");
+        optionButton.type = "button";
+        optionButton.className = "btn btn-sm secondary-button human-prompt-option";
+        optionButton.textContent = option;
+        optionButton.addEventListener("click", () => finish(option));
+        optionList.append(optionButton);
+      }
+    }
     approve.addEventListener("click", () =>
       finish(input.value.trim() || i18n.t("taskpane.dialog.confirm")));
     cancel.addEventListener("click", () => finish(null));
@@ -3118,9 +3138,9 @@ function appendCreateSkillAction(
   if (runImmediately) void generate();
 }
 
-const MAX_CHAT_HISTORY_ENTRIES = 50;
+const MAX_CHAT_HISTORY_ENTRIES = 100;
 const MAX_CHAT_HISTORY_ITEM_CHARS = 1200;
-const MAX_CHAT_HISTORY_TOTAL_CHARS = 6000;
+const MAX_CHAT_HISTORY_TOTAL_CHARS = 32000;
 const agentChatHistory: Array<{ role: "User" | "Assistant"; text: string }> = [];
 
 function pushChatHistory(role: "User" | "Assistant", rawText: string): void {
@@ -3136,7 +3156,7 @@ function pushChatHistory(role: "User" | "Assistant", rawText: string): void {
 }
 
 function buildRequirementWithHistory(requirement: string, maxEntries: number): string {
-  const limit = Math.max(0, Math.min(50, Math.trunc(maxEntries)));
+  const limit = Math.max(0, Math.min(200, Math.trunc(maxEntries)));
   if (limit === 0 || agentChatHistory.length === 0) return requirement;
   const recent = agentChatHistory.slice(-limit);
   const selected: string[] = [];
@@ -3176,7 +3196,7 @@ async function runAgent(requirement: string): Promise<void> {
       allowLocalTools: false,
       allowNetworkTools: false,
       allowMcpTools: false,
-      chatHistoryLimit: 16,
+      chatHistoryLimit: 100,
       permissionMode: "request" as "request" | "auto" | "full",
       // Compatibility aliases used by early settings builds.
       iterations: undefined as number | undefined,
@@ -3222,7 +3242,7 @@ async function runAgent(requirement: string): Promise<void> {
     }
     const chatHistoryLimit = typeof currentAgentSettings.chatHistoryLimit === "number"
       ? currentAgentSettings.chatHistoryLimit
-      : 16;
+      : 100;
     const effectiveRequirement = buildRequirementWithHistory(requirement, chatHistoryLimit);
     pushChatHistory("User", requirement);
     const session = await runtime.startAgent(effectiveRequirement, tools.list(), {
