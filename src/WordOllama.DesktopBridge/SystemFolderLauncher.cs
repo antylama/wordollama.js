@@ -19,9 +19,10 @@ public sealed class SystemFolderLauncher : ISystemFolderLauncher
         {
             startInfo = new ProcessStartInfo
             {
-                FileName = fullPath,
-                UseShellExecute = true,
+                FileName = "explorer.exe",
+                UseShellExecute = false,
             };
+            startInfo.ArgumentList.Add(fullPath);
         }
         else if (OperatingSystem.IsMacOS())
         {
