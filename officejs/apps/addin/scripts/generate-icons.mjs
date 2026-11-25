@@ -61,7 +61,7 @@ const icons = [
 
 const root = join(import.meta.dirname, "..", "assets", "ribbon");
 const wpsRoot = join(root, "wps");
-const ribbonAssetRevision = "mono-2";
+const ribbonAssetRevision = "mono-3";
 await mkdir(root, { recursive: true });
 await mkdir(wpsRoot, { recursive: true });
 const catalog = [];
