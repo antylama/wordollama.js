@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using WordOllama.Contracts;
@@ -345,6 +347,32 @@ public sealed partial class ProviderSettingsStore
             "http://127.0.0.1:11434",
             StringComparison.OrdinalIgnoreCase);
 
+    private static bool IsAllowedHttpEndpoint(Uri endpoint)
+    {
+        if (endpoint.Scheme != Uri.UriSchemeHttp) return false;
+        if (endpoint.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)) return true;
+
+        if (!IPAddress.TryParse(endpoint.Host, out var address)) return false;
+        if (IPAddress.IsLoopback(address)) return true;
+
+        if (address.AddressFamily == AddressFamily.InterNetwork)
+        {
+            var bytes = address.GetAddressBytes();
+            return bytes[0] == 10 ||
+                   (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) ||
+                   (bytes[0] == 192 && bytes[1] == 168) ||
+                   (bytes[0] == 100 && bytes[1] >= 64 && bytes[1] <= 127) ||
+                   (bytes[0] == 169 && bytes[1] == 254);
+        }
+
+        if (address.AddressFamily == AddressFamily.InterNetworkV6)
+        {
+            return address.IsIPv6LinkLocal || address.IsIPv6UniqueLocal;
+        }
+
+        return false;
+    }
+
     private static ProviderProfileSettings Validate(
         ProviderProfileUpdate update,
         bool allowEmptyModel = false)
@@ -362,10 +390,9 @@ public sealed partial class ProviderSettingsStore
             throw new ArgumentException("Provider model is required.");
         }
         if (!Uri.TryCreate(update.Endpoint, UriKind.Absolute, out var endpoint) ||
-            (endpoint.Scheme != Uri.UriSchemeHttps &&
-             !(endpoint.Scheme == Uri.UriSchemeHttp && endpoint.Host is "127.0.0.1" or "localhost" or "::1")))
+            (endpoint.Scheme != Uri.UriSchemeHttps && !IsAllowedHttpEndpoint(endpoint)))
         {
-            throw new ArgumentException("Provider endpoint must use HTTPS; loopback HTTP is allowed.");
+            throw new ArgumentException("Provider endpoint must use HTTPS; loopback and private network HTTP is allowed.");
         }
         if (update.ContextWindow is < 0 or > 10_000_000) throw new ArgumentException("Context window is out of range.");
         if (update.Temperature is < 0 or > 2 || double.IsNaN(update.Temperature))
