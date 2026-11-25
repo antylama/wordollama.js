@@ -28,6 +28,13 @@ function normalizeHexColor(value: string): string | undefined {
   return trimmed;
 }
 
+function normalizeLineSpacingPoints(value: number, fontSizePt = 12): number {
+  if (value > 0 && value <= 4) {
+    return Math.round(value * fontSizePt * 1.2 * 10) / 10;
+  }
+  return value;
+}
+
 export interface WordSelection {
   text: string;
   documentUrl?: string;
@@ -1116,7 +1123,7 @@ export class OfficeJsWordAdapter {
   }
 
   async replaceParagraph(paragraphIndex: number, text: string): Promise<void> {
-    if (!Number.isInteger(paragraphIndex) || paragraphIndex < 1 || !text) {
+    if (!Number.isInteger(paragraphIndex) || paragraphIndex < 1 || typeof text !== "string") {
       throw new Error("paragraph_index and new_text are required");
     }
     await Word.run(async (context) => {
@@ -1127,7 +1134,11 @@ export class OfficeJsWordAdapter {
       if (!paragraph) {
         throw new Error(`paragraph ${paragraphIndex} is out of range`);
       }
-      paragraph.insertText(text, Word.InsertLocation.replace);
+      if (text.length === 0) {
+        paragraph.delete();
+      } else {
+        paragraph.insertText(text, Word.InsertLocation.replace);
+      }
       await context.sync();
     });
   }
@@ -1428,6 +1439,9 @@ export class OfficeJsWordAdapter {
       fontSize?: number;
       bold?: boolean;
       italic?: boolean;
+      lineSpacing?: number;
+      spaceBefore?: number;
+      spaceAfter?: number;
     },
   ): Promise<{ updated: number; styles: string[] }> {
     const targetName = styleName.trim();
@@ -1437,7 +1451,7 @@ export class OfficeJsWordAdapter {
     }
     return Word.run(async (context) => {
       const styles = context.document.getStyles();
-      styles.load("items/nameLocal,items/inUse,items/type");
+      styles.load("items/nameLocal,items/inUse,items/type,items/font/size");
       await context.sync();
       const matched = targetName === "*"
         ? styles.items.filter((style) => style.inUse)
@@ -1454,6 +1468,17 @@ export class OfficeJsWordAdapter {
         if (typeof options.fontSize === "number") style.font.size = options.fontSize;
         if (typeof options.bold === "boolean") style.font.bold = options.bold;
         if (typeof options.italic === "boolean") style.font.italic = options.italic;
+        const paragraphFormat = (style as unknown as {
+          paragraphFormat?: { lineSpacing?: number; spaceBefore?: number; spaceAfter?: number };
+        }).paragraphFormat;
+        if (paragraphFormat) {
+          if (typeof options.lineSpacing === "number") {
+            const baseSize = options.fontSize ?? (Number(style.font?.size) || 12);
+            paragraphFormat.lineSpacing = normalizeLineSpacingPoints(options.lineSpacing, baseSize);
+          }
+          if (typeof options.spaceBefore === "number") paragraphFormat.spaceBefore = options.spaceBefore;
+          if (typeof options.spaceAfter === "number") paragraphFormat.spaceAfter = options.spaceAfter;
+        }
       }
       await context.sync();
       return { updated: matched.length, styles: matched.map((style) => style.nameLocal) };
@@ -1592,7 +1617,9 @@ export class OfficeJsWordAdapter {
       paragraphs.items.forEach((paragraph) => {
         if (options.fontName) paragraph.font.name = options.fontName;
         if (typeof options.fontSize === "number") paragraph.font.size = options.fontSize;
-        if (typeof options.lineSpacing === "number") paragraph.lineSpacing = options.lineSpacing;
+        if (typeof options.lineSpacing === "number") {
+          paragraph.lineSpacing = normalizeLineSpacingPoints(options.lineSpacing, options.fontSize ?? 12);
+        }
       });
       await context.sync();
     });

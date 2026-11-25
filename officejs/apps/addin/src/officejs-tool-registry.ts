@@ -155,8 +155,8 @@ const descriptors: OfficeToolDescriptor[] = [
       properties: {
         paragraph_index: { type: "integer" },
         alignment: { type: "string", enum: ["Left", "Centered", "Right", "Justified"] },
-        space_before: { type: "number" },
-        space_after: { type: "number" },
+        space_before: { type: "number", description: "Spacing before paragraph in points (pt), e.g. 12." },
+        space_after: { type: "number", description: "Spacing after paragraph in points (pt), e.g. 6." },
       },
       required: ["paragraph_index"],
     },
@@ -172,8 +172,8 @@ const descriptors: OfficeToolDescriptor[] = [
         italic: { type: "boolean" },
         underline: { type: "boolean" },
         font_name: { type: "string" },
-        font_size: { type: "number" },
-        color: { type: "string" },
+        font_size: { type: "number", description: "Font size in points (pt), e.g. 11." },
+        color: { type: "string", description: "Hex color (#RRGGBB), e.g. '#000000'." },
         expected_selection_hash: expectedSelectionHashSchema,
       },
       required: ["expected_selection_hash"],
@@ -270,8 +270,8 @@ const descriptors: OfficeToolDescriptor[] = [
         cell_alignment: { type: "string", enum: ["Left", "Centered", "Right", "Justified"] },
         vertical_alignment: { type: "string", enum: ["Top", "Center", "Bottom"] },
         shading_color: { type: "string" },
-        border_color: { type: "string" },
-        border_width: { type: "number" },
+        border_color: { type: "string", description: "Hex color (#RRGGBB), e.g. '#000000'." },
+        border_width: { type: "number", description: "Border width in points (pt), e.g. 0.5 or 1." },
         autofit: { type: "string", enum: ["window", "content", "fixed"] },
       },
       required: ["table_index"],
@@ -331,7 +331,14 @@ const descriptors: OfficeToolDescriptor[] = [
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
-      properties: { font_name: { type: "string" }, font_size: { type: "number" }, line_spacing: { type: "number" } },
+      properties: {
+        font_name: { type: "string" },
+        font_size: { type: "number", description: "Font size in points (pt), e.g. 11." },
+        line_spacing: {
+          type: "number",
+          description: "Line spacing as a multiplier (e.g. 1.15, 1.5, 2.0) or exact points (>= 8).",
+        },
+      },
       required: [],
     },
   },
@@ -495,6 +502,12 @@ const descriptors: OfficeToolDescriptor[] = [
         font_size: { type: "number" },
         bold: { type: "boolean" },
         italic: { type: "boolean" },
+        line_spacing: {
+          type: "number",
+          description: "Line spacing as a multiplier (e.g. 1.15, 1.5, 2.0) or exact points (>= 8).",
+        },
+        space_before: { type: "number", description: "Spacing before paragraph in points (pt), e.g. 12." },
+        space_after: { type: "number", description: "Spacing after paragraph in points (pt), e.g. 6." },
       },
       required: ["style_name"],
     },
@@ -548,7 +561,7 @@ export class OfficeJsToolRegistry {
         await this.word.applyStyle(this.requireInt(args, "paragraph_index"), this.requireString(args, "style_name"));
         return { applied: true };
       case "replace_paragraph":
-        await this.word.replaceParagraph(this.requireInt(args, "paragraph_index"), this.requireString(args, "new_text"));
+        await this.word.replaceParagraph(this.requireInt(args, "paragraph_index"), this.requireString(args, "new_text", true));
         return { replaced: true };
       case "insert_at_cursor":
         await this.word.insertAtCursor(this.requireString(args, "text"), this.requireSelectionHash(args));
@@ -717,6 +730,9 @@ export class OfficeJsToolRegistry {
           fontSize: this.optionalNumber(args, "font_size"),
           bold: this.optionalBoolean(args, "bold"),
           italic: this.optionalBoolean(args, "italic"),
+          lineSpacing: this.optionalNumber(args, "line_spacing"),
+          spaceBefore: this.optionalNumber(args, "space_before"),
+          spaceAfter: this.optionalNumber(args, "space_after"),
         });
       default:
         throw new Error(`Office.js tool is not registered: ${name}`);
