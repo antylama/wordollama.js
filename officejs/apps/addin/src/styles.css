@@ -2127,6 +2127,7 @@ label,
 }
 
 .composer {
+  position: relative;
   max-width: 100%;
   margin: 0;
   padding: 6px 12px 10px;
@@ -2135,6 +2136,45 @@ label,
   border-radius: 0;
   background: var(--canvas);
   box-shadow: none;
+}
+
+.composer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--accent);
+  transition: opacity 0.25s ease;
+}
+
+.composer[data-running="true"]::before {
+  opacity: 1;
+  animation: composer-thinking-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes composer-thinking-glow {
+  0%, 100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+#agent-run .stop-icon {
+  display: none;
+}
+
+#agent-run[data-running="true"] .send-icon {
+  display: none;
+}
+
+#agent-run[data-running="true"] .stop-icon {
+  display: block;
 }
 
 .composer-toolbar {

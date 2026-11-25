@@ -1,4 +1,4 @@
-import { ArrowUp, Bot, ImagePlus, Undo2 } from "lucide-react";
+import { ArrowUp, Bot, ImagePlus, Square, Undo2 } from "lucide-react";
 
 export function AgentWorkspace() {
   return (
@@ -80,7 +80,7 @@ export function AgentWorkspace() {
           </div>
         </div>
 
-        <div className="composer">
+        <div id="agent-composer" className="composer">
           <input
             id="agent-image-input"
             type="file"
@@ -152,7 +152,8 @@ export function AgentWorkspace() {
               aria-label="Send"
               data-i18n-aria-label="taskpane.agent.send"
             >
-              <ArrowUp size={17} strokeWidth={2.2} aria-hidden="true" />
+              <ArrowUp className="send-icon" size={17} strokeWidth={2.2} aria-hidden="true" />
+              <Square className="stop-icon" size={13} fill="currentColor" strokeWidth={2} aria-hidden="true" />
             </button>
           </div>
         </div>

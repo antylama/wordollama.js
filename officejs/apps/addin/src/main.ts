@@ -303,13 +303,12 @@ const agentOutput = required<HTMLDivElement>("#agent-output");
 const emptyChatState = required<HTMLDivElement>("#empty-chat-state");
 const agentRequirement = required<HTMLTextAreaElement>("#agent-requirement");
 const agentRunButton = required<HTMLButtonElement>("#agent-run");
+const agentComposer = required<HTMLDivElement>("#agent-composer");
 const agentUndoTaskButton = required<HTMLButtonElement>("#agent-undo-task");
 const agentImageInput = required<HTMLInputElement>("#agent-image-input");
 const agentImagePreview = required<HTMLDivElement>("#agent-image-preview");
 const agentImagePreviewImage = required<HTMLImageElement>("#agent-image-preview-img");
-const agentStopButton = required<HTMLButtonElement>("#agent-stop");
-const agentStatusBar = required<HTMLElement>("#agent-status-bar");
-const agentStatusText = required<HTMLElement>("#agent-status-text");
+let isAgentRunning = false;
 const errorText = required<HTMLParagraphElement>("#error");
 const settingsDialog = required<HTMLDialogElement>("#settings-dialog");
 const surfaceTitle = required<HTMLHeadingElement>("#surface-title");
@@ -2458,6 +2457,7 @@ function appendMessage(
   text: string,
   kind: "user" | "agent" | "system" | "activity" | "action" | "error-message" = "agent",
   imageDataUrl = "",
+  persist = true,
 ): HTMLDivElement {
   emptyChatState.remove();
   const row = document.createElement("div");
@@ -2477,6 +2477,11 @@ function appendMessage(
   row.appendChild(bubble);
   agentOutput.appendChild(row);
   agentOutput.scrollTop = agentOutput.scrollHeight;
+  if (persist && (kind === "system" || kind === "activity" || kind === "error-message")) {
+    const role = kind === "system" ? "System" : kind === "activity" ? "Activity" : "Error";
+    const entry = pushChatHistory(role, text);
+    if (entry) bubbleHistoryEntries.set(bubble, entry);
+  }
   return bubble;
 }
 
@@ -2489,6 +2494,12 @@ function updateActivity(
   bubble.dataset.raw = text;
   bubble.textContent = text;
   bubble.closest(".chat-message")?.classList.toggle("failed", failed);
+  const entry = bubbleHistoryEntries.get(bubble);
+  if (entry) {
+    entry.text = text;
+    entry.failed = failed;
+    saveChatHistory();
+  }
 }
 
 function appendToolFocusAction(
@@ -2506,7 +2517,7 @@ function appendToolFocusAction(
   button.addEventListener("click", async () => {
     try {
       const focused = await word.focusToolTarget(name, args);
-      if (!focused) throw new Error(i18n.t("taskpane.agent.focusTargetUnavailable"));
+      if (!focused) button.disabled = true;
     } catch (error) {
       showError(error);
     }
@@ -2514,12 +2525,20 @@ function appendToolFocusAction(
   bubble.append(button);
 }
 
-function setAgentRunning(running: boolean, status = i18n.t("taskpane.common.ready")): void {
-  agentRunButton.disabled = running;
-  agentStopButton.hidden = !running;
-  agentStatusBar.hidden = !running;
-  agentStatusText.textContent = status;
-  if (!running) delete agentStatusBar.dataset.permissionMode;
+function setAgentRunning(running: boolean, _status = i18n.t("taskpane.common.ready")): void {
+  isAgentRunning = running;
+  agentRunButton.disabled = false;
+  if (running) {
+    agentRunButton.dataset.running = "true";
+    agentComposer.dataset.running = "true";
+    agentRunButton.setAttribute("aria-label", i18n.t("taskpane.common.stop"));
+    agentRunButton.title = i18n.t("taskpane.common.stop");
+  } else {
+    delete agentRunButton.dataset.running;
+    delete agentComposer.dataset.running;
+    agentRunButton.setAttribute("aria-label", i18n.t("taskpane.agent.send"));
+    agentRunButton.title = i18n.t("taskpane.agent.send");
+  }
 }
 
 function requestDecision(message: string, approveLabel: string, rejectLabel: string): Promise<boolean> {
@@ -3115,11 +3134,18 @@ function appendCreateSkillAction(
   if (runImmediately) void generate();
 }
 
-const MAX_CHAT_HISTORY_ENTRIES = 100;
+const MAX_CHAT_HISTORY_ENTRIES = 300;
 const MAX_CHAT_HISTORY_ITEM_CHARS = 1200;
 const MAX_CHAT_HISTORY_TOTAL_CHARS = 32000;
 const AGENT_CHAT_HISTORY_STORAGE_KEY = "wordollama-agent-chat-history";
-const agentChatHistory: Array<{ role: "User" | "Assistant"; text: string }> = [];
+type ChatHistoryRole = "User" | "Assistant" | "System" | "Activity" | "Error";
+interface ChatHistoryEntry {
+  role: ChatHistoryRole;
+  text: string;
+  failed?: boolean;
+}
+const agentChatHistory: ChatHistoryEntry[] = [];
+const bubbleHistoryEntries = new WeakMap<HTMLDivElement, ChatHistoryEntry>();
 let chatHistoryRestored = false;
 
 function getChatHistoryTarget(): { storage: Storage; key: string } {
@@ -3152,12 +3178,32 @@ function restoreChatHistory(): void {
       if (
         item &&
         typeof item === "object" &&
-        (item.role === "User" || item.role === "Assistant") &&
+        (item.role === "User" ||
+          item.role === "Assistant" ||
+          item.role === "System" ||
+          item.role === "Activity" ||
+          item.role === "Error") &&
         typeof item.text === "string" &&
         item.text.trim()
       ) {
-        agentChatHistory.push({ role: item.role, text: item.text });
-        appendMessage(item.text, item.role === "User" ? "user" : "agent");
+        const entry: ChatHistoryEntry = {
+          role: item.role,
+          text: item.text,
+          failed: item.failed === true ? true : undefined,
+        };
+        agentChatHistory.push(entry);
+        const kind =
+          item.role === "User"
+            ? "user"
+            : item.role === "Assistant"
+              ? "agent"
+              : item.role === "System"
+                ? "system"
+                : item.role === "Activity"
+                  ? "activity"
+                  : "error-message";
+        const bubble = appendMessage(item.text, kind, "", false);
+        if (entry.failed) bubble.closest(".chat-message")?.classList.add("failed");
       }
     }
     if (agentChatHistory.length > MAX_CHAT_HISTORY_ENTRIES) {
@@ -3168,23 +3214,28 @@ function restoreChatHistory(): void {
   }
 }
 
-function pushChatHistory(role: "User" | "Assistant", rawText: string): void {
+function pushChatHistory(role: ChatHistoryRole, rawText: string): ChatHistoryEntry | null {
   const trimmed = rawText.trim();
-  if (!trimmed) return;
+  if (!trimmed) return null;
   const text = trimmed.length > MAX_CHAT_HISTORY_ITEM_CHARS
     ? `${trimmed.slice(0, MAX_CHAT_HISTORY_ITEM_CHARS)}…`
     : trimmed;
-  agentChatHistory.push({ role, text });
+  const entry: ChatHistoryEntry = { role, text };
+  agentChatHistory.push(entry);
   if (agentChatHistory.length > MAX_CHAT_HISTORY_ENTRIES) {
     agentChatHistory.splice(0, agentChatHistory.length - MAX_CHAT_HISTORY_ENTRIES);
   }
   saveChatHistory();
+  return entry;
 }
 
 function buildRequirementWithHistory(requirement: string, maxEntries: number): string {
   const limit = Math.max(0, Math.min(200, Math.trunc(maxEntries)));
-  if (limit === 0 || agentChatHistory.length === 0) return requirement;
-  const recent = agentChatHistory.slice(-limit);
+  const conversation = agentChatHistory.filter(
+    (entry) => entry.role === "User" || entry.role === "Assistant",
+  );
+  if (limit === 0 || conversation.length === 0) return requirement;
+  const recent = conversation.slice(-limit);
   const selected: string[] = [];
   let totalChars = 0;
   for (let i = recent.length - 1; i >= 0; i -= 1) {
@@ -3249,8 +3300,6 @@ async function runAgent(requirement: string): Promise<void> {
         appendMessage(i18n.t("taskpane.agent.fullAccessCancelled"), "system");
         return;
       }
-      agentStatusBar.dataset.permissionMode = "full";
-      agentStatusText.textContent = i18n.t("taskpane.agent.fullAccessActive");
     }
     if (executionMode !== "ViewOnly") {
       lastAgentDocumentSnapshot = await word.captureDocumentSnapshot();
@@ -3339,6 +3388,16 @@ agentUndoTaskButton.addEventListener("click", async () => {
 });
 
 agentRunButton.addEventListener("click", async () => {
+  if (isAgentRunning) {
+    if (!activeSessionId) return;
+    try {
+      await runtime.cancelAgent(activeSessionId);
+      appendMessage(i18n.t("taskpane.agent.stopRequested"), "system");
+    } catch (error) {
+      showError(error);
+    }
+    return;
+  }
   try {
     await runAgent(agentRequirement.value.trim());
   } catch (error) {
@@ -3593,20 +3652,9 @@ agentRequirement.addEventListener("keydown", (event) => {
       return;
     }
   }
-  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing && !isAgentRunning) {
     event.preventDefault();
     agentRunButton.click();
-  }
-});
-
-agentStopButton.addEventListener("click", async () => {
-  if (!activeSessionId) return;
-  try {
-    await runtime.cancelAgent(activeSessionId);
-    appendMessage(i18n.t("taskpane.agent.stopRequested"), "system");
-    agentStatusText.textContent = i18n.t("taskpane.agent.stopping");
-  } catch (error) {
-    showError(error);
   }
 });
 

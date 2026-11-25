@@ -39,15 +39,6 @@ export function TaskpaneChrome() {
             Connecting to Word…
           </span>
           <button
-            id="agent-stop"
-            className="btn btn-error btn-outline btn-xs danger-button"
-            type="button"
-            hidden
-            data-i18n="taskpane.common.stop"
-          >
-            Stop
-          </button>
-          <button
             id="new-chat"
             className="btn btn-ghost btn-square btn-sm icon-button"
             type="button"
@@ -71,14 +62,6 @@ export function TaskpaneChrome() {
           </button>
         </div>
       </header>
-
-      <section id="agent-status-bar" className="agent-status-bar" hidden>
-        <span className="status-pulse" aria-hidden="true" />
-        <span id="agent-status-text" data-i18n="taskpane.common.ready">
-          Ready
-        </span>
-        <span id="agent-iteration" />
-      </section>
     </>
   );
 }
