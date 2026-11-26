@@ -44,7 +44,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "get_doc_overview",
-    description: "Read the document paragraph count and opening preview.",
+    description: "Read the document paragraph count and opening preview. Use first for a quick orientation before reading specific ranges.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
@@ -60,27 +60,32 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "read_paragraphs",
-    description: "Read a specified range of Word paragraphs.",
+    description: "Read a range of Word paragraphs by 1-based inclusive start and end indices.",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
-      properties: { start: { type: "integer" }, end: { type: "integer" } },
+      properties: {
+        start: { type: "integer", minimum: 1, description: "1-based starting paragraph index." },
+        end: { type: "integer", minimum: 1, description: "1-based ending paragraph index." },
+      },
       required: ["start", "end"],
     },
   },
   {
     name: "read_large_chunk",
-    description: "Read up to 50 paragraphs starting at a specified paragraph.",
+    description: "Read up to 50 paragraphs starting at a 1-based start_paragraph index.",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
-      properties: { start_paragraph: { type: "integer" } },
+      properties: {
+        start_paragraph: { type: "integer", minimum: 1, description: "1-based starting paragraph index." },
+      },
       required: ["start_paragraph"],
     },
   },
   {
     name: "build_semantic_map",
-    description: "Build a document semantic map from paragraph chunks.",
+    description: "Build a full-document structural map from paragraph chunks for long documents.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
@@ -98,21 +103,27 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "apply_style",
-    description: "Apply a style to a specified paragraph.",
+    description: "Apply a style to a 1-based paragraph_index. Use the exact localized style_name from list_styles (e.g. 'Heading 1' or 'Nagłówek 1').",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
-      properties: { paragraph_index: { type: "integer" }, style_name: { type: "string" } },
+      properties: {
+        paragraph_index: { type: "integer", minimum: 1, description: "1-based paragraph index." },
+        style_name: { type: "string", description: "Exact localized style name from list_styles." },
+      },
       required: ["paragraph_index", "style_name"],
     },
   },
   {
     name: "replace_paragraph",
-    description: "Replace the text of a specified paragraph.",
+    description: "Replace the text of a paragraph by its 1-based paragraph_index.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
-      properties: { paragraph_index: { type: "integer" }, new_text: { type: "string" } },
+      properties: {
+        paragraph_index: { type: "integer", minimum: 1, description: "1-based paragraph index." },
+        new_text: { type: "string" },
+      },
       required: ["paragraph_index", "new_text"],
     },
   },
@@ -178,12 +189,12 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "format_paragraph",
-    description: "Set paragraph alignment and spacing before or after it.",
+    description: "Set alignment and spacing (in points) for a paragraph by its 1-based paragraph_index.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
       properties: {
-        paragraph_index: { type: "integer" },
+        paragraph_index: { type: "integer", minimum: 1, description: "1-based paragraph index." },
         alignment: { type: "string", enum: ["Left", "Centered", "Right", "Justified"] },
         space_before: { type: "number", description: "Spacing before paragraph in points (pt), e.g. 12." },
         space_after: { type: "number", description: "Spacing after paragraph in points (pt), e.g. 6." },
@@ -250,25 +261,15 @@ const descriptors: OfficeToolDescriptor[] = [
     },
   },
   {
-    name: "table_insert_row",
-    description: "Insert a row in a Word table.",
-    isWriteOperation: true,
-    parameterSchema: {
-      type: "object",
-      properties: { table_index: { type: "integer" }, after_row: { type: "integer" } },
-      required: ["table_index"],
-    },
-  },
-  {
     name: "table_set_cell",
-    description: "Set text in a Word table cell.",
+    description: "Set text in a Word table cell (1-based table_index, row, and column).",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
       properties: {
-        table_index: { type: "integer" },
-        row: { type: "integer" },
-        column: { type: "integer" },
+        table_index: { type: "integer", minimum: 1 },
+        row: { type: "integer", minimum: 1 },
+        column: { type: "integer", minimum: 1 },
         text: { type: "string" },
       },
       required: ["table_index", "row", "column", "text"],
@@ -276,18 +277,18 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "edit_table_structure",
-    description: "Add or remove table rows and columns, or merge and split cells.",
+    description: "Insert or delete table rows/columns, or merge and split cells (1-based table_index, row, and column).",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
       properties: {
-        table_index: { type: "integer" },
+        table_index: { type: "integer", minimum: 1 },
         action: { type: "string", enum: ["insert_row", "delete_row", "insert_column", "delete_column", "merge_cells", "split_cell"] },
-        row: { type: "integer" },
-        column: { type: "integer" },
-        end_row: { type: "integer" },
-        end_column: { type: "integer" },
-        count: { type: "integer" },
+        row: { type: "integer", minimum: 1 },
+        column: { type: "integer", minimum: 1 },
+        end_row: { type: "integer", minimum: 1 },
+        end_column: { type: "integer", minimum: 1 },
+        count: { type: "integer", minimum: 1 },
       },
       required: ["table_index", "action"],
     },
@@ -320,50 +321,8 @@ const descriptors: OfficeToolDescriptor[] = [
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
-    name: "read_clause",
-    description: "Read document clauses matching a keyword.",
-    isWriteOperation: false,
-    parameterSchema: {
-      type: "object",
-      properties: { keyword: { type: "string" } },
-      required: ["keyword"],
-    },
-  },
-  {
-    name: "extract_definitions",
-    description: "Extract common definition clauses from the document.",
-    isWriteOperation: false,
-    parameterSchema: { type: "object", properties: {}, required: [] },
-  },
-  {
-    name: "check_cross_references",
-    description: "Scan clause cross-references in the document.",
-    isWriteOperation: false,
-    parameterSchema: { type: "object", properties: {}, required: [] },
-  },
-  {
-    name: "insert_clause_after",
-    description: "Insert a clause after specified anchor text.",
-    isWriteOperation: true,
-    parameterSchema: {
-      type: "object",
-      properties: { anchor: { type: "string" }, text: { type: "string" } },
-      required: ["anchor", "text"],
-    },
-  },
-  {
-    name: "highlight_risk",
-    description: "Highlight risk keywords in the document.",
-    isWriteOperation: true,
-    parameterSchema: {
-      type: "object",
-      properties: { keyword: { type: "string" }, color: { type: "string" } },
-      required: ["keyword"],
-    },
-  },
-  {
     name: "apply_legal_format",
-    description: "Apply legal-document font and line-spacing formatting in one operation.",
+    description: "Apply uniform font family, font size, and line spacing across all body paragraphs in one operation.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -379,16 +338,6 @@ const descriptors: OfficeToolDescriptor[] = [
     },
   },
   {
-    name: "validate_citation",
-    description: "Validate that a citation contains a year and article number.",
-    isWriteOperation: false,
-    parameterSchema: {
-      type: "object",
-      properties: { citation: { type: "string" } },
-      required: ["citation"],
-    },
-  },
-  {
     name: "insert_image",
     description: "Insert a Base64 image at the end of the document.",
     isWriteOperation: true,
@@ -400,7 +349,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "format_list",
-    description: "Format the current selection as a bulleted or numbered list.",
+    description: "Format the currently selected paragraphs as a bulleted or numbered list (select target text with select_exact_text first).",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -463,7 +412,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "header_footer",
-    description: "Set header or footer text in the first section.",
+    description: "Set header text, footer text, or page numbers for a document section (1-based section_index, default 1) and kind (primary, first, or even).",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -492,16 +441,6 @@ const descriptors: OfficeToolDescriptor[] = [
         use_hyperlinks: { type: "boolean" },
       },
       required: ["action"],
-    },
-  },
-  {
-    name: "replace_exact_text",
-    description: "Replace exact document text using the legacy-compatible tool name.",
-    isWriteOperation: true,
-    parameterSchema: {
-      type: "object",
-      properties: { find: { type: "string" }, replace: { type: "string" } },
-      required: ["find", "replace"],
     },
   },
   {
