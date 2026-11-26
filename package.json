@@ -8,6 +8,7 @@
     "build:public": "node scripts/build-local.mjs public",
     "start:local": "dotnet dist-local/WordOllama.DesktopBridge.dll",
     "start:public": "dotnet dist-local/WordOllama.DesktopBridge.dll --Bridge:Urls=http://0.0.0.0:37421 --Bridge:AllowRemoteAccess=true",
+    "manifest:zip": "npm --prefix officejs/apps/addin run manifest:zip",
     "icons:generate": "npm --prefix officejs/apps/addin run icons:generate"
   }
 }

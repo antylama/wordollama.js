@@ -417,11 +417,7 @@ public sealed class OpenAiCompatibleProvider : IModelProvider
         var payload = new Dictionary<string, object?>
         {
             ["model"] = model,
-            ["input"] = request.Messages
-                .Where(message => !IsInstructionRole(message.Role) &&
-                                  !string.Equals(message.Role, "tool", StringComparison.OrdinalIgnoreCase))
-                .Select(ToResponsesInput)
-                .ToArray(),
+            ["input"] = BuildResponsesInputItems(request.Messages),
         };
         var instructions = string.Join(
             "\n\n",
@@ -432,17 +428,6 @@ public sealed class OpenAiCompatibleProvider : IModelProvider
         if (!string.IsNullOrWhiteSpace(instructions))
         {
             payload["instructions"] = instructions;
-        }
-
-        var toolOutputs = request.Messages
-            .Where(message => string.Equals(message.Role, "tool", StringComparison.OrdinalIgnoreCase))
-            .Select(ToResponsesToolOutput)
-            .ToArray();
-        if (toolOutputs.Length > 0)
-        {
-            payload["input"] = payload["input"] is object[] existing
-                ? existing.Concat(toolOutputs).ToArray()
-                : toolOutputs;
         }
         if (request.Temperature.HasValue && (_reasoningEffort is null or "none"))
         {
@@ -474,27 +459,60 @@ public sealed class OpenAiCompatibleProvider : IModelProvider
         return payload;
     }
 
-    private static object ToResponsesInput(ChatMessage message)
+    private static object[] BuildResponsesInputItems(IReadOnlyList<ChatMessage> messages)
     {
-        var content = new List<object>();
-        if (!string.IsNullOrEmpty(message.Content))
+        var items = new List<object>();
+        foreach (var message in messages)
         {
-            content.Add(new { type = "input_text", text = message.Content });
+            if (IsInstructionRole(message.Role)) continue;
+            if (string.Equals(message.Role, "tool", StringComparison.OrdinalIgnoreCase))
+            {
+                items.Add(ToResponsesToolOutput(message));
+                continue;
+            }
+            var role = NormalizeMessageRole(message.Role);
+            var textType = string.Equals(role, "assistant", StringComparison.OrdinalIgnoreCase)
+                ? "output_text"
+                : "input_text";
+            var content = new List<object>();
+            if (!string.IsNullOrEmpty(message.Content))
+            {
+                content.Add(new { type = textType, text = message.Content });
+            }
+            if (!string.IsNullOrWhiteSpace(message.ImageDataUrl))
+            {
+                _ = ProviderImageDataParser.Parse(message.ImageDataUrl);
+                content.Add(new { type = "input_image", image_url = message.ImageDataUrl });
+            }
+            var hasToolCalls = message.ToolCalls is { Count: > 0 };
+            if (content.Count > 0 || !hasToolCalls)
+            {
+                if (content.Count == 0)
+                {
+                    content.Add(new { type = textType, text = string.Empty });
+                }
+                items.Add(new
+                {
+                    type = "message",
+                    role,
+                    content = content.ToArray(),
+                });
+            }
+            if (hasToolCalls)
+            {
+                foreach (var call in message.ToolCalls!)
+                {
+                    items.Add(new
+                    {
+                        type = "function_call",
+                        call_id = call.Id,
+                        name = call.Name,
+                        arguments = call.Arguments.GetRawText(),
+                    });
+                }
+            }
         }
-        if (!string.IsNullOrWhiteSpace(message.ImageDataUrl))
-        {
-            _ = ProviderImageDataParser.Parse(message.ImageDataUrl);
-            content.Add(new { type = "input_image", image_url = message.ImageDataUrl });
-        }
-        if (content.Count == 0)
-        {
-            content.Add(new { type = "input_text", text = string.Empty });
-        }
-        return new
-        {
-            role = NormalizeMessageRole(message.Role),
-            content = content.ToArray(),
-        };
+        return items.ToArray();
     }
 
     private static object ToResponsesToolOutput(ChatMessage message) => new

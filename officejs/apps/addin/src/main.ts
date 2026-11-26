@@ -3435,7 +3435,7 @@ async function runAgent(requirement: string): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     appendDiagnostic("agent", message);
-    appendMessage(i18n.t("taskpane.errors.requestFailed"), "error-message");
+    appendMessage(message || i18n.t("taskpane.errors.requestFailed"), "error-message");
     throw error;
   } finally {
     try { await word.restoreTrackedChanges(previousTrackingMode); }

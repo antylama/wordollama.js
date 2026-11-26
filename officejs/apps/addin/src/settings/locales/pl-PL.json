@@ -592,7 +592,7 @@
       "wordCommandFailed": "The Word command failed",
       "dialogStylesUnsupported": "This version of Office cannot access Word styles from the settings window",
       "wordCommandTimeout": "The Word command timed out",
-      "requestFailed": "The operation failed. Try again.",
+      "requestFailed": "Operacja nie powiodła się. Spróbuj ponownie.",
       "selectionEmpty": "The current selection is empty",
       "documentEmpty": "The current document is empty",
       "selectionRequired": "Load the current selection before using this action",

@@ -57,7 +57,7 @@ const appId = readFlag("id", process.env.WORDOLLAMA_APP_ID || "9f8e6b40-3c1f-4e7
 const developerName = readFlag("developer", process.env.WORDOLLAMA_DEVELOPER_NAME || "WordOllama.JS");
 const outDir = resolve(addinRoot, readFlag("out", "dist-manifest"));
 
-const shortVersion = readFlag("version", "1.2.0");
+const shortVersion = readFlag("version", "1.2.1");
 const fourPartVersion = /^\d+\.\d+\.\d+\.\d+$/.test(shortVersion)
   ? shortVersion
   : `${shortVersion}.4`;
@@ -176,6 +176,16 @@ const unifiedManifest = {
   },
   accentColor: "#1d4ed8",
   validDomains: [domain],
+  authorization: {
+    permissions: {
+      resourceSpecific: [
+        {
+          name: "Document.ReadWrite.User",
+          type: "Delegated",
+        },
+      ],
+    },
+  },
   extensions: [
     {
       requirements: {
