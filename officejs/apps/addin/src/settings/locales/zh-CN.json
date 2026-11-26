@@ -1241,7 +1241,7 @@
       "format_paragraph": "设置段落对齐和段前、段后间距。",
       "format_text": "设置当前选区的字体格式。",
       "insert_page_break": "在当前光标处插入分页符。",
-      "read_table": "读取指定 Word 表格并返回二维单元格数据。",
+      "read_table": "读取指定 Word 表格并返回二维单元格数据。table_index 从 1 开始（第一个表格为 1）。",
       "insert_table": "在文档末尾插入 Word 表格。",
       "table_insert_row": "在 Word 表格中插入一行。",
       "table_set_cell": "设置 Word 表格中的单元格文本。",

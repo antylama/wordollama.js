@@ -1241,7 +1241,7 @@
       "format_paragraph": "Set paragraph alignment and spacing before or after it.",
       "format_text": "Set font formatting for the current selection.",
       "insert_page_break": "Insert a page break at the current cursor.",
-      "read_table": "Read a specified Word table as two-dimensional cell data.",
+      "read_table": "Odczytaj wskazaną tabelę Worda jako dwuwymiarową tablicę komórek. Indeks table_index jest liczony od 1 (pierwsza tabela to 1, nie 0).",
       "insert_table": "Insert a Word table at the end of the document.",
       "table_insert_row": "Insert a row in a Word table.",
       "table_set_cell": "Set text in a Word table cell.",

@@ -1498,8 +1498,11 @@ button.translation-swap-button:hover {
   color: inherit;
 }
 
-.chat-history-select:hover {
+.chat-history-menu .chat-history-select:hover,
+.chat-history-menu .chat-history-select:focus-visible,
+:root[data-theme="dark"] .chat-history-menu .chat-history-select:hover {
   background: transparent;
+  color: inherit;
 }
 
 .chat-history-title {
@@ -1530,7 +1533,7 @@ button.translation-swap-button:hover {
   color: inherit;
 }
 
-.chat-history-delete:hover {
+.chat-history-menu .chat-history-delete:hover {
   opacity: 1;
   background: color-mix(in srgb, var(--danger, #ef4444) 14%, transparent);
 }

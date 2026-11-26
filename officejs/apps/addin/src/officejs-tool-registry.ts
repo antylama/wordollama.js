@@ -195,7 +195,13 @@ const descriptors: OfficeToolDescriptor[] = [
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
-      properties: { table_index: { type: "integer" } },
+      properties: {
+        table_index: {
+          type: "integer",
+          minimum: 1,
+          description: "1-based index of the table in the document (first table is 1, not 0).",
+        },
+      },
       required: ["table_index"],
     },
   },
