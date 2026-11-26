@@ -548,6 +548,25 @@ const descriptors: OfficeToolDescriptor[] = [
       required: ["style_name"],
     },
   },
+  {
+    name: "get_track_changes",
+    description: "get_track_changes",
+    isWriteOperation: false,
+    parameterSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "set_track_changes",
+    description: "set_track_changes",
+    isWriteOperation: true,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        enabled: { type: "boolean", description: "True to enable Track Changes, false to turn it off." },
+        mine_only: { type: "boolean", description: "Optional: track only my own changes when enabled." },
+      },
+      required: ["enabled"],
+    },
+  },
 ];
 
 export class OfficeJsToolRegistry {
@@ -780,6 +799,13 @@ export class OfficeJsToolRegistry {
           spaceBefore: this.optionalNumber(args, "space_before"),
           spaceAfter: this.optionalNumber(args, "space_after"),
         });
+      case "get_track_changes":
+        return this.word.getTrackChanges();
+      case "set_track_changes": {
+        const enabled = this.optionalBoolean(args, "enabled");
+        if (enabled === undefined) throw new Error("enabled must be a boolean");
+        return this.word.setTrackChanges(enabled, this.optionalBoolean(args, "mine_only") ?? false);
+      }
       default:
         throw new Error(`Office.js tool is not registered: ${name}`);
     }

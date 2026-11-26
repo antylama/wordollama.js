@@ -274,7 +274,13 @@ export class OfficeJsWordAdapter {
       return true;
     }
 
-    const wordApi14 = ["read_comments", "add_comment", "apply_precise_revision"];
+    const wordApi14 = [
+      "read_comments",
+      "add_comment",
+      "apply_precise_revision",
+      "get_track_changes",
+      "set_track_changes",
+    ];
     if (name === "list_styles" || name === "edit_style") {
       return requirements.isSetSupported("WordApi", "1.5");
     }
@@ -326,6 +332,40 @@ export class OfficeJsWordAdapter {
     await Word.run(async (context) => {
       context.document.changeTrackingMode = mode;
       await context.sync();
+    });
+  }
+
+  async getTrackChanges(): Promise<{ mode: string; enabled: boolean }> {
+    if (!Office.context?.requirements?.isSetSupported?.("WordApi", "1.4")) {
+      throw new Error("Track Changes API requires WordApi 1.4 or later.");
+    }
+    return Word.run(async (context) => {
+      context.document.load("changeTrackingMode");
+      await context.sync();
+      const mode = String(context.document.changeTrackingMode);
+      return {
+        mode,
+        enabled: context.document.changeTrackingMode !== Word.ChangeTrackingMode.off,
+      };
+    });
+  }
+
+  async setTrackChanges(enabled: boolean, mineOnly = false): Promise<{ mode: string; enabled: boolean }> {
+    if (!Office.context?.requirements?.isSetSupported?.("WordApi", "1.4")) {
+      throw new Error("Track Changes API requires WordApi 1.4 or later.");
+    }
+    const targetMode = !enabled
+      ? Word.ChangeTrackingMode.off
+      : mineOnly
+        ? Word.ChangeTrackingMode.trackMineOnly
+        : Word.ChangeTrackingMode.trackAll;
+    return Word.run(async (context) => {
+      context.document.changeTrackingMode = targetMode;
+      await context.sync();
+      return {
+        mode: String(targetMode),
+        enabled: targetMode !== Word.ChangeTrackingMode.off,
+      };
     });
   }
 

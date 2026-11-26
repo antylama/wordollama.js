@@ -1267,7 +1267,9 @@
       "apply_precise_revision": "Apply only the changed hunks to the current selection as tracked Word revisions; fails safely if the selection changed.",
       "ask_human": "Ask the Word user a question and wait for confirmation or input. Always provide 1 to 3 concise options when possible so the user can answer with one click.",
       "delete_paragraph": "Delete a paragraph by its 1-based paragraph_index.",
-      "insert_hyperlink": "Insert a clickable hyperlink at the cursor or over the current selection."
+      "insert_hyperlink": "Insert a clickable hyperlink at the cursor or over the current selection.",
+      "get_track_changes": "Read whether Word Track Changes is currently enabled and its mode.",
+      "set_track_changes": "Enable or disable Word Track Changes for the active document."
     },
     "settings": {
       "openFailed": "Unable to open Settings."

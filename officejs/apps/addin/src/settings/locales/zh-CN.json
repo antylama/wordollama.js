@@ -1267,7 +1267,9 @@
       "apply_precise_revision": "仅将修改片段作为 Word 修订应用到当前选区；选区变化时安全停止。",
       "ask_human": "向 Word 用户提问并等待人工确认或输入。尽可能提供 1 到 3 个简短选项，方便用户一键选择。",
       "delete_paragraph": "按从 1 开始的 paragraph_index 删除指定段落。",
-      "insert_hyperlink": "在光标处或当前选区插入可点击的超链接。"
+      "insert_hyperlink": "在光标处或当前选区插入可点击的超链接。",
+      "get_track_changes": "读取当前 Word 文档的修订跟踪状态与模式。",
+      "set_track_changes": "在当前 Word 文档中开启或关闭修订跟踪。"
     },
     "settings": {
       "openFailed": "无法打开设置。"
