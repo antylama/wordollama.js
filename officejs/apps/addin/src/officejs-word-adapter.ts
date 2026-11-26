@@ -1784,6 +1784,57 @@ export class OfficeJsWordAdapter {
     });
   }
 
+  async clearFormatting(options: {
+    scope?: string;
+    expectedSelectionHash?: string;
+    clearFont?: boolean;
+    clearParagraphSpacing?: boolean;
+    resetToNormal?: boolean;
+  } = {}): Promise<{ scope: string; paragraphsCleared: number }> {
+    const scope = options.scope === "selection" ? "selection" : "document";
+    const clearFont = options.clearFont !== false;
+    const clearParagraphSpacing = options.clearParagraphSpacing !== false;
+    const resetToNormal = options.resetToNormal === true;
+
+    return Word.run(async (context) => {
+      let targetRange: Word.Range;
+      if (scope === "selection") {
+        const selection = context.document.getSelection();
+        if (options.expectedSelectionHash) {
+          await this.assertExpectedSelection(context, selection, options.expectedSelectionHash);
+        }
+        targetRange = selection;
+      } else {
+        targetRange = context.document.body.getRange();
+      }
+
+      const paragraphs = targetRange.paragraphs;
+      paragraphs.load("items");
+      await context.sync();
+
+      for (const paragraph of paragraphs.items) {
+        if (resetToNormal) {
+          paragraph.styleBuiltIn = Word.BuiltInStyleName.normal;
+        }
+        if (clearFont) {
+          paragraph.font.bold = false;
+          paragraph.font.italic = false;
+          paragraph.font.underline = Word.UnderlineType.none;
+          paragraph.font.strikeThrough = false;
+          paragraph.font.highlightColor = null as unknown as string;
+        }
+        if (clearParagraphSpacing) {
+          paragraph.spaceBefore = 0;
+          paragraph.spaceAfter = 0;
+          paragraph.leftIndent = 0;
+          paragraph.firstLineIndent = 0;
+        }
+      }
+      await context.sync();
+      return { scope, paragraphsCleared: paragraphs.items.length };
+    });
+  }
+
   async applyLegalFormat(options: { fontName?: string; fontSize?: number; lineSpacing?: number }): Promise<void> {
     await Word.run(async (context) => {
       const paragraphs = context.document.body.paragraphs;

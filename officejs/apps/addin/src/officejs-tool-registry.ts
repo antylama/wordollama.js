@@ -321,18 +321,21 @@ const descriptors: OfficeToolDescriptor[] = [
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
-    name: "apply_legal_format",
-    description: "Apply uniform font family, font size, and line spacing across all body paragraphs in one operation.",
+    name: "clear_formatting",
+    description: "Clear direct character formatting, paragraph spacing/indents, or reset paragraphs to Normal style across the document or current selection.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
       properties: {
-        font_name: { type: "string" },
-        font_size: { type: "number", description: "Font size in points (pt), e.g. 11." },
-        line_spacing: {
-          type: "number",
-          description: "Line spacing as a multiplier (e.g. 1.15, 1.5, 2.0) or exact points (>= 8).",
+        scope: {
+          type: "string",
+          enum: ["document", "selection"],
+          description: "Target scope: 'document' (default) or 'selection' (requires expected_selection_hash).",
         },
+        clear_font: { type: "boolean", description: "Clear bold, italic, underline, strikethrough, and highlight (default true)." },
+        clear_paragraph_spacing: { type: "boolean", description: "Reset paragraph spacing and indents to 0 (default true)." },
+        reset_to_normal: { type: "boolean", description: "Reset paragraph style to built-in Normal style (default false)." },
+        expected_selection_hash: expectedSelectionHashSchema,
       },
       required: [],
     },
@@ -714,13 +717,16 @@ export class OfficeJsToolRegistry {
         return { inserted: true };
       case "highlight_risk":
         return this.word.highlightRisk(this.requireString(args, "keyword"), this.optionalString(args, "color"));
-      case "apply_legal_format":
-        await this.word.applyLegalFormat({
-          fontName: this.optionalString(args, "font_name"),
-          fontSize: this.optionalNumber(args, "font_size"),
-          lineSpacing: this.optionalNumber(args, "line_spacing"),
+      case "clear_formatting": {
+        const scope = this.optionalString(args, "scope") ?? "document";
+        return this.word.clearFormatting({
+          scope,
+          expectedSelectionHash: scope === "selection" ? this.requireSelectionHash(args) : undefined,
+          clearFont: this.optionalBoolean(args, "clear_font"),
+          clearParagraphSpacing: this.optionalBoolean(args, "clear_paragraph_spacing"),
+          resetToNormal: this.optionalBoolean(args, "reset_to_normal"),
         });
-        return { formatted: true };
+      }
       case "validate_citation":
         return this.word.validateCitation(this.requireString(args, "citation"));
       case "insert_image":
