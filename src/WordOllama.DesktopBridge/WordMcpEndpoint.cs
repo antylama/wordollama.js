@@ -168,9 +168,14 @@ public static class WordMcpEndpoint
                 },
             },
         };
-        tools.AddRange(broker.GetTools().Select(ToMcpTool));
+        tools.AddRange(broker.GetTools()
+            .Where(tool => !IsInternalPanelOnlyTool(tool.Name))
+            .Select(ToMcpTool));
         return JsonRpcResult(id, new { tools });
     }
+
+    private static bool IsInternalPanelOnlyTool(string name) =>
+        string.Equals(name, "ask_human", StringComparison.OrdinalIgnoreCase);
 
     private static async Task<IResult> CallToolAsync(
         JsonElement? id,
@@ -186,6 +191,10 @@ public static class WordMcpEndpoint
         }
 
         var name = nameValue.GetString()!;
+        if (IsInternalPanelOnlyTool(name))
+        {
+            return JsonRpcError(id, -32601, $"Tool not available over MCP: {name}");
+        }
         if (string.Equals(name, StatusToolName, StringComparison.OrdinalIgnoreCase))
         {
             return ToolResult(id, JsonSerializer.Serialize(broker.GetStatus(), WebJson), false);

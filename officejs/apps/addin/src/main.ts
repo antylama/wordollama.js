@@ -3602,7 +3602,7 @@ function renderChatHistoryMenu(): void {
     row.className = `chat-history-item${session.id === activeChatId && agentChatHistory.length > 0 ? " active" : ""}`;
     const select = document.createElement("button");
     select.type = "button";
-    select.className = "chat-history-select";
+    select.className = "text-button chat-history-select";
     select.setAttribute("role", "menuitem");
     const title = document.createElement("span");
     title.className = "chat-history-title";
@@ -3618,7 +3618,7 @@ function renderChatHistoryMenu(): void {
 
     const remove = document.createElement("button");
     remove.type = "button";
-    remove.className = "chat-history-delete";
+    remove.className = "text-button chat-history-delete";
     remove.setAttribute("aria-label", i18n.t("taskpane.agent.deleteChat"));
     remove.title = i18n.t("taskpane.agent.deleteChat");
     remove.textContent = "×";

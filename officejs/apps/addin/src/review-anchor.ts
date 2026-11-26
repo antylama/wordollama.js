@@ -9,7 +9,7 @@ export interface ReviewAnchor {
 }
 
 export function normalizeReviewText(value: string): string {
-  return value.replace(/[\r\a]+$/g, "").replace(/\s+/g, " ").trim();
+  return value.replace(/[\r\x07]+$/g, "").replace(/\s+/g, " ").trim();
 }
 
 export function hashReviewText(value: string): string {

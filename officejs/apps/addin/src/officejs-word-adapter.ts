@@ -636,7 +636,7 @@ export class OfficeJsWordAdapter {
       }
       await context.sync();
       for (const [index, paragraph] of paragraphs.items.entries()) {
-        const text = paragraph.text.replace(/[\r\a]+$/g, "");
+        const text = paragraph.text.replace(/[\r\x07]+$/g, "");
         const matchAt = text.toLocaleLowerCase().indexOf(keyword.toLocaleLowerCase());
         if (matchAt < 0) continue;
         locations.push({
@@ -697,7 +697,7 @@ export class OfficeJsWordAdapter {
         start,
         end: boundedEnd,
         paragraphs: selected
-          .map((paragraph) => paragraph.text.replace(/[\r\a]+$/g, "")),
+          .map((paragraph) => paragraph.text.replace(/[\r\x07]+$/g, "")),
       };
     });
   }
@@ -940,7 +940,7 @@ export class OfficeJsWordAdapter {
       await context.sync();
 
       const normalize = (value: string) =>
-        value.replace(/[\r\a]+$/g, "").replace(/\s+/g, " ").trim();
+        value.replace(/[\r\x07]+$/g, "").replace(/\s+/g, " ").trim();
       const paragraphTexts = paragraphs.items.map((paragraph) => normalize(paragraph.text));
       const resolveParagraphIndex = (expectedIndex: number, expectedText: string): number => {
         const normalizedExpected = normalize(expectedText);
@@ -1082,14 +1082,14 @@ export class OfficeJsWordAdapter {
       await context.sync();
       const entries: Array<{ start: number; end: number; summary: string }> = [];
       const headingIndexes = paragraphs.items
-        .map((paragraph, index) => ({ index, style: paragraph.style, text: paragraph.text.replace(/[\r\a]+$/g, "").trim() }))
+        .map((paragraph, index) => ({ index, style: paragraph.style, text: paragraph.text.replace(/[\r\x07]+$/g, "").trim() }))
         .filter((item) => /^(?:Heading|标题)\s*[1-9]$/i.test(item.style));
       const boundaries = headingIndexes.length ? headingIndexes.map((item) => item.index) :
         paragraphs.items.map((_, index) => index).filter((index) => index % 10 === 0);
       for (let boundary = 0; boundary < boundaries.length; boundary += 1) {
         const index = boundaries[boundary];
         const next = boundaries[boundary + 1] ?? paragraphs.items.length;
-        const summary = paragraphs.items[index]?.text.replace(/[\r\a]+$/g, "").trim() ?? "";
+        const summary = paragraphs.items[index]?.text.replace(/[\r\x07]+$/g, "").trim() ?? "";
         entries.push({
           start: index + 1,
           end: next,
@@ -1553,7 +1553,7 @@ export class OfficeJsWordAdapter {
       const body = context.document.body;
       body.load("text");
       await context.sync();
-      const text = body.text.replace(/[\r\a]+/g, "\n");
+      const text = body.text.replace(/[\r\x07]+/g, "\n");
       const definitions: Array<{ term: string; definition: string }> = [];
       const pattern = /[“\"]([^”\"]{1,80})[”\"]\s*(?:指|是指|means|means that)\s*([^。；;\n]{1,300})/gi;
       for (const match of text.matchAll(pattern)) {
