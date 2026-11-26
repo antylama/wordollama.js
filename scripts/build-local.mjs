@@ -41,7 +41,15 @@ console.log("[1/3] Building Office.js frontend bundle...");
 run("npm", ["--prefix", "officejs/apps/addin", "run", "bundle"]);
 
 console.log("[2/3] Publishing Desktop Bridge...");
-rmSync(outDir, { recursive: true, force: true });
+try {
+  rmSync(outDir, { recursive: true, force: true });
+} catch (error) {
+  if (error?.code === "EPERM" || error?.code === "EBUSY") {
+    console.error(`\nCannot clean ${outDir} (${error.code}) — stop the running Desktop Bridge (Ctrl+C on start:local / start:public) first.`);
+    process.exit(1);
+  }
+  throw error;
+}
 mkdirSync(outDir, { recursive: true });
 run("dotnet", [
   "publish",

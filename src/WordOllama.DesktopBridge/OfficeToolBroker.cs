@@ -136,19 +136,21 @@ public sealed class OfficeToolBroker
         }
     }
 
-    public IReadOnlyList<OfficeToolDescriptor> GetTools() =>
-        ResolveHosts()
+    public IReadOnlyList<OfficeToolDescriptor> GetTools(string? hostId = null) =>
+        ResolveHosts(hostId: hostId)
             .SelectMany(host => host.GetTools())
             .GroupBy(tool => tool.Name, StringComparer.OrdinalIgnoreCase)
             .Select(group => group.First())
             .ToArray();
 
-    public OfficeToolBrokerStatus GetStatus()
+    public OfficeToolBrokerStatus GetStatus(string? hostId = null)
     {
         var now = _timeProvider.GetUtcNow();
         RemoveStaleHosts(now);
         var active = _hosts.Values
             .Where(host => now - host.LastSeenAt <= _hostTimeout)
+            .Where(host => string.IsNullOrWhiteSpace(hostId) ||
+                           string.Equals(host.HostId, hostId, StringComparison.Ordinal))
             .OrderByDescending(host => host.LastSeenAt)
             .ToArray();
         var hosts = active.Select(host => host.Describe()).ToArray();
@@ -162,12 +164,14 @@ public sealed class OfficeToolBroker
             hosts);
     }
 
-    private IReadOnlyList<HostState> ResolveHosts(string? requiredTool = null)
+    private IReadOnlyList<HostState> ResolveHosts(string? requiredTool = null, string? hostId = null)
     {
         var now = _timeProvider.GetUtcNow();
         RemoveStaleHosts(now);
         return _hosts.Values
             .Where(host => now - host.LastSeenAt <= _hostTimeout)
+            .Where(host => string.IsNullOrWhiteSpace(hostId) ||
+                           string.Equals(host.HostId, hostId, StringComparison.Ordinal))
             .Where(host => requiredTool is null || host.Supports(requiredTool))
             .OrderByDescending(host => host.LastSeenAt)
             .ToArray();

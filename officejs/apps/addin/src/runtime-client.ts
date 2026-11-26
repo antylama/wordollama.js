@@ -75,10 +75,27 @@ import {
   type PairingStorage,
 } from "./pairing-session";
 
-export class RuntimeClient {
-  private readonly officeHostId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+function getOrCreateOfficeHostId(): string {
+  const storageKey = "wordollama-office-host-id";
+  try {
+    const existing = typeof window !== "undefined" ? window.localStorage?.getItem(storageKey)?.trim() : "";
+    if (existing) return existing;
+  } catch {
+    // Ignore storage access errors in restricted WebViews.
+  }
+  const created = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()
     : `word-host-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  try {
+    if (typeof window !== "undefined") window.localStorage?.setItem(storageKey, created);
+  } catch {
+    // Ignore storage access errors in restricted WebViews.
+  }
+  return created;
+}
+
+export class RuntimeClient {
+  private readonly officeHostId = getOrCreateOfficeHostId();
   private cookieSession = false;
   private sessionToken: string | undefined;
   private csrfToken: string | undefined;
@@ -435,27 +452,39 @@ export class RuntimeClient {
   }
 
   async getWordMcpSettings(): Promise<WordMcpSettingsView> {
-    return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp");
+    return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp", {
+      headers: { "X-WordOllama-Host": this.officeHostId },
+    });
   }
 
   async generateWordMcpToken(): Promise<WordMcpSettingsView> {
     return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp/token/generate", {
       method: "POST",
+      headers: { "X-WordOllama-Host": this.officeHostId },
     });
   }
 
   async enableWordMcp(): Promise<WordMcpSettingsView> {
-    return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp/enable", { method: "POST" });
+    return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp/enable", {
+      method: "POST",
+      headers: { "X-WordOllama-Host": this.officeHostId },
+    });
   }
 
   async disableWordMcp(): Promise<WordMcpSettingsView> {
-    return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp/disable", { method: "POST" });
+    return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp/disable", {
+      method: "POST",
+      headers: { "X-WordOllama-Host": this.officeHostId },
+    });
   }
 
   async getWordMcpAgentConfig(): Promise<string> {
     const result = await this.settingsRequest<{ configuration: string }>(
       "/settings/word-mcp/agent-config",
-      { method: "POST" },
+      {
+        method: "POST",
+        headers: { "X-WordOllama-Host": this.officeHostId },
+      },
     );
     return result.configuration;
   }

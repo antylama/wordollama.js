@@ -281,12 +281,19 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
   const { t } = useTranslation();
   const [status, setStatus] = useState<StatusState>(null);
   const [preference, setPreference] = useState<UiLocalePreference>(readUiLocalePreference());
-  const [settings, setSettings] = useState(() => readStored("wordollama-general-settings", {
-    outputMode: "Auto",
-    darkTheme: false,
-    suppressPlan: false,
-    suppressDiff: false,
-  }));
+  const [settings, setSettings] = useState(() => {
+    const stored = readStored("wordollama-general-settings", {
+      outputMode: "Auto",
+      darkTheme: undefined as boolean | undefined,
+      suppressPlan: false,
+      suppressDiff: false,
+    });
+    const hostDark = typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+    return {
+      ...stored,
+      darkTheme: typeof stored.darkTheme === "boolean" ? stored.darkTheme : hostDark,
+    };
+  });
   const [reviewSettings, setReviewSettings] = useState({
     memories: [] as MemoryItemView[],
     outputPreference: "",
@@ -1385,9 +1392,19 @@ function McpPage() {
   const [importJson, setImportJson] = useState("");
   const [importFile, setImportFile] = useState<File | null>(null);
   const [wordMcp, setWordMcp] = useState<WordMcpSettingsView | null>(null);
+  const [wordMcpConfig, setWordMcpConfig] = useState("");
   const [wordMcpStatus, setWordMcpStatus] = useState<StatusState>(null);
   const [generatingWordMcpToken, setGeneratingWordMcpToken] = useState(false);
   const [wordMcpRegenerateOpen, setWordMcpRegenerateOpen] = useState(false);
+  const wordMcpConfigRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const loadWordMcpConfig = async () => {
+    try {
+      setWordMcpConfig(await runtime.getWordMcpAgentConfig());
+    } catch {
+      setWordMcpConfig("");
+    }
+  };
 
   const load = async () => {
     try {
@@ -1400,7 +1417,10 @@ function McpPage() {
   useEffect(() => { void load(); }, []);
   useEffect(() => {
     void runtime.getWordMcpSettings()
-      .then(setWordMcp)
+      .then((value) => {
+        setWordMcp(value);
+        if (value.configured) void loadWordMcpConfig();
+      })
       .catch((error) => setWordMcpStatus(toStatus(error, "common.notConnected")));
   }, []);
 
@@ -1409,6 +1429,7 @@ function McpPage() {
     try {
       const generated = await runtime.generateWordMcpToken();
       setWordMcp(generated);
+      await loadWordMcpConfig();
       setWordMcpStatus(translatedStatus("mcp.wordHostGenerated"));
     } catch (error) {
       setWordMcpStatus(toStatus(error, "mcp.wordHostGenerateFailed"));
@@ -1417,9 +1438,27 @@ function McpPage() {
     }
   };
 
-  const copyWordMcpValue = async (value: string) => {
+  const writeClipboardWithFallback = async (value: string): Promise<void> => {
     try {
       await navigator.clipboard.writeText(value);
+      return;
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = value;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      if (!copied) throw new Error("clipboard_blocked");
+    }
+  };
+
+  const copyWordMcpValue = async (value: string) => {
+    try {
+      await writeClipboardWithFallback(value);
       setWordMcpStatus(translatedStatus("mcp.wordHostCopied"));
     } catch (error) {
       setWordMcpStatus(toStatus(error, "mcp.wordHostCopyFailed"));
@@ -1430,6 +1469,7 @@ function McpPage() {
     try {
       const next = enabled ? await runtime.enableWordMcp() : await runtime.disableWordMcp();
       setWordMcp((current) => ({ ...next, accessToken: current?.accessToken }));
+      if (next.configured) void loadWordMcpConfig();
       setWordMcpStatus(translatedStatus(enabled ? "mcp.wordHostEnabledStatus" : "mcp.wordHostDisabledStatus"));
     } catch (error) {
       setWordMcpStatus(toStatus(error, "mcp.wordHostStateFailed"));
@@ -1438,8 +1478,16 @@ function McpPage() {
 
   const copyWordMcpAgentConfig = async () => {
     try {
-      await navigator.clipboard.writeText(await runtime.getWordMcpAgentConfig());
-      setWordMcpStatus(translatedStatus("mcp.wordHostConfigCopied"));
+      const config = wordMcpConfig || await runtime.getWordMcpAgentConfig();
+      setWordMcpConfig(config);
+      try {
+        await writeClipboardWithFallback(config);
+        setWordMcpStatus(translatedStatus("mcp.wordHostConfigCopied"));
+      } catch (error) {
+        wordMcpConfigRef.current?.focus();
+        wordMcpConfigRef.current?.select();
+        setWordMcpStatus(toStatus(error, "mcp.wordHostCopyFailed"));
+      }
     } catch (error) {
       setWordMcpStatus(toStatus(error, "mcp.wordHostCopyFailed"));
     }
@@ -1543,6 +1591,18 @@ function McpPage() {
           ) : null}
           {wordMcp?.enabled ? <span className="badge badge-success badge-soft">{t("mcp.wordHostEnabled")}</span> : null}
         </div>
+        {wordMcpConfig ? (
+          <fieldset className="fieldset mt-3">
+            <textarea
+              ref={wordMcpConfigRef}
+              className="textarea textarea-sm font-mono w-full"
+              rows={7}
+              readOnly
+              value={wordMcpConfig}
+              onFocus={(event) => event.currentTarget.select()}
+            />
+          </fieldset>
+        ) : null}
         <Status value={wordMcpStatus} />
       </Card>
       {wordMcpRegenerateOpen ? (
@@ -2206,8 +2266,12 @@ export function SettingsApp() {
   const { t } = useTranslation();
   const [page, setPage] = useState<PageId>("general");
   const [visitedPages, setVisitedPages] = useState<Set<PageId>>(() => new Set(["general"]));
-  const initialSettings = useMemo(() => readStored("wordollama-general-settings", { darkTheme: false }), []);
-  const [darkTheme, setDarkTheme] = useState(Boolean(initialSettings.darkTheme));
+  const initialSettings = useMemo(() => {
+    const stored = readStored("wordollama-general-settings", { darkTheme: undefined as boolean | undefined });
+    if (typeof stored.darkTheme === "boolean") return stored.darkTheme;
+    return typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+  }, []);
+  const [darkTheme, setDarkTheme] = useState(initialSettings);
   const registrations = useRef(new Map<string, SettingsSaveRegistration>());
   const [saveRevision, setSaveRevision] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -2348,9 +2412,9 @@ export function SettingsApp() {
     ] },
     { label: t("nav.extensions"), items: [
       { id: "skills", icon: "settings-skills" }, { id: "mcp", icon: "settings-mcp" },
-      { id: "advanced", icon: "settings-advanced" },
     ] },
     { label: t("nav.system"), items: [
+      { id: "advanced", icon: "settings-advanced" },
       { id: "updates", icon: "settings-updates" }, { id: "about", icon: "settings-about" },
     ] },
   ];

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -12,8 +13,21 @@ public sealed class WordMcpOptions
     public const string TokenSecretName = "WORDOLLAMA_WORD_MCP_TOKEN";
     public const string EnabledSecretName = "WORDOLLAMA_WORD_MCP_ENABLED";
     private readonly object _gate = new();
+    private readonly ConcurrentDictionary<string, HostMcpToken> _hostTokens = new(StringComparer.Ordinal);
     private bool _enabled;
     private string _accessToken;
+
+    private sealed class HostMcpToken
+    {
+        public HostMcpToken(string token, bool enabled)
+        {
+            Token = token;
+            Enabled = enabled;
+        }
+
+        public string Token { get; set; }
+        public bool Enabled { get; set; }
+    }
 
     public WordMcpOptions(bool enabled, string accessToken)
     {
@@ -23,13 +37,17 @@ public sealed class WordMcpOptions
 
     public bool Enabled { get { lock (_gate) return _enabled; } }
     public string AccessToken { get { lock (_gate) return _accessToken; } }
+    public bool HasAnyEnabled => Enabled || _hostTokens.Values.Any(entry => entry.Enabled);
 
-    public string GenerateAndEnable(IMutableSecretStore secrets)
-    {
-        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+    private static string CreateToken() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
             .TrimEnd('=')
             .Replace('+', '-')
             .Replace('/', '_');
+
+    public string GenerateAndEnable(IMutableSecretStore secrets)
+    {
+        var token = CreateToken();
         secrets.Set(TokenSecretName, token);
         secrets.Set(EnabledSecretName, bool.TrueString);
         lock (_gate)
@@ -38,6 +56,70 @@ public sealed class WordMcpOptions
             _enabled = true;
         }
         return token;
+    }
+
+    public (bool Enabled, bool Configured, string AccessToken) GetOrCreateHostState(string hostId, bool createIfMissing = false)
+    {
+        lock (_gate)
+        {
+            if (!_hostTokens.TryGetValue(hostId, out var entry))
+            {
+                if (!createIfMissing) return (false, false, string.Empty);
+                entry = new HostMcpToken(CreateToken(), true);
+                _hostTokens[hostId] = entry;
+            }
+            return (entry.Enabled, true, entry.Token);
+        }
+    }
+
+    public string GenerateHostToken(string hostId)
+    {
+        var token = CreateToken();
+        lock (_gate)
+        {
+            _hostTokens[hostId] = new HostMcpToken(token, true);
+        }
+        return token;
+    }
+
+    public void EnableHost(string hostId)
+    {
+        lock (_gate)
+        {
+            if (!_hostTokens.TryGetValue(hostId, out var entry) || entry.Token.Length < 32)
+                throw new InvalidOperationException("Generate a Word MCP access token before enabling the endpoint.");
+            entry.Enabled = true;
+        }
+    }
+
+    public void DisableHost(string hostId)
+    {
+        lock (_gate)
+        {
+            if (_hostTokens.TryGetValue(hostId, out var entry))
+                entry.Enabled = false;
+        }
+    }
+
+    public bool TryMatchHostToken(string suppliedToken, out string? hostId)
+    {
+        var suppliedBytes = Encoding.UTF8.GetBytes(suppliedToken);
+        lock (_gate)
+        {
+            foreach (var pair in _hostTokens)
+            {
+                if (!pair.Value.Enabled || string.IsNullOrEmpty(pair.Value.Token)) continue;
+                var expectedBytes = Encoding.UTF8.GetBytes(pair.Value.Token);
+                if (expectedBytes.Length == suppliedBytes.Length &&
+                    CryptographicOperations.FixedTimeEquals(expectedBytes, suppliedBytes))
+                {
+                    hostId = pair.Key;
+                    return true;
+                }
+            }
+        }
+        hostId = null;
+        return false;
     }
 
     public void Enable(IMutableSecretStore secrets)
@@ -65,9 +147,13 @@ public static class WordMcpEndpoint
     private const string StatusToolName = "wordollama_status";
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
 
-    public static bool IsAuthorized(HttpRequest request, WordMcpOptions options, string? routeToken = null)
+    public static bool TryAuthorize(
+        HttpRequest request,
+        WordMcpOptions options,
+        string? routeToken,
+        out string? scopedHostId)
     {
-        if (!options.Enabled || string.IsNullOrWhiteSpace(options.AccessToken)) return false;
+        scopedHostId = null;
         string? supplied = null;
         var authorization = request.Headers.Authorization.FirstOrDefault();
         if (authorization is not null && authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
@@ -79,11 +165,21 @@ public static class WordMcpEndpoint
             supplied = routeToken.Trim();
         }
         if (string.IsNullOrEmpty(supplied)) return false;
+
+        if (options.TryMatchHostToken(supplied, out scopedHostId))
+        {
+            return true;
+        }
+
+        if (!options.Enabled || string.IsNullOrWhiteSpace(options.AccessToken)) return false;
         var expectedBytes = Encoding.UTF8.GetBytes(options.AccessToken);
         var suppliedBytes = Encoding.UTF8.GetBytes(supplied);
         return expectedBytes.Length == suppliedBytes.Length &&
             CryptographicOperations.FixedTimeEquals(expectedBytes, suppliedBytes);
     }
+
+    public static bool IsAuthorized(HttpRequest request, WordMcpOptions options, string? routeToken = null) =>
+        TryAuthorize(request, options, routeToken, out _);
 
     private sealed class FailedAuthTracker
     {
@@ -150,7 +246,7 @@ public static class WordMcpEndpoint
         CancellationToken cancellationToken,
         string? token = null)
     {
-        if (!options.Enabled) return Results.NotFound();
+        if (!options.HasAnyEnabled) return Results.NotFound();
 
         var clientKey = request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var now = DateTimeOffset.UtcNow;
@@ -160,7 +256,7 @@ public static class WordMcpEndpoint
             return Results.StatusCode(StatusCodes.Status429TooManyRequests);
         }
 
-        if (!IsAuthorized(request, options, token))
+        if (!TryAuthorize(request, options, token, out var scopedHostId))
         {
             AuthTracker.RecordFailure(clientKey, now);
             return Results.Unauthorized();
@@ -207,8 +303,8 @@ public static class WordMcpEndpoint
             {
                 "initialize" => Initialize(id, parameters),
                 "ping" => JsonRpcResult(id, new { }),
-                "tools/list" => ListTools(id, broker),
-                "tools/call" => await CallToolAsync(id, parameters, broker, cancellationToken),
+                "tools/list" => ListTools(id, broker, scopedHostId),
+                "tools/call" => await CallToolAsync(id, parameters, broker, scopedHostId, cancellationToken),
                 _ => JsonRpcError(id, -32601, $"Method not found: {method}"),
             };
         }
@@ -232,7 +328,7 @@ public static class WordMcpEndpoint
         });
     }
 
-    private static IResult ListTools(JsonElement? id, OfficeToolBroker broker)
+    private static IResult ListTools(JsonElement? id, OfficeToolBroker broker, string? scopedHostId)
     {
         var tools = new List<object>
         {
@@ -251,7 +347,7 @@ public static class WordMcpEndpoint
                 },
             },
         };
-        tools.AddRange(broker.GetTools()
+        tools.AddRange(broker.GetTools(scopedHostId)
             .Where(tool => !IsInternalPanelOnlyTool(tool.Name))
             .Select(ToMcpTool));
         return JsonRpcResult(id, new { tools });
@@ -264,6 +360,7 @@ public static class WordMcpEndpoint
         JsonElement? id,
         JsonElement parameters,
         OfficeToolBroker broker,
+        string? scopedHostId,
         CancellationToken cancellationToken)
     {
         if (parameters.ValueKind != JsonValueKind.Object ||
@@ -280,20 +377,21 @@ public static class WordMcpEndpoint
         }
         if (string.Equals(name, StatusToolName, StringComparison.OrdinalIgnoreCase))
         {
-            return ToolResult(id, JsonSerializer.Serialize(broker.GetStatus(), WebJson), false);
+            return ToolResult(id, JsonSerializer.Serialize(broker.GetStatus(scopedHostId), WebJson), false);
         }
 
         var arguments = parameters.TryGetProperty("arguments", out var suppliedArguments) &&
             suppliedArguments.ValueKind == JsonValueKind.Object
                 ? suppliedArguments.Clone()
                 : JsonSerializer.SerializeToElement(new { });
-        var hostId = arguments.TryGetProperty("host_id", out var hostValue) &&
+        var requestedHostId = arguments.TryGetProperty("host_id", out var hostValue) &&
             hostValue.ValueKind == JsonValueKind.String
                 ? hostValue.GetString()
                 : null;
+        var effectiveHostId = scopedHostId ?? requestedHostId;
         try
         {
-            var result = await broker.CallAsync(name, arguments, hostId, cancellationToken);
+            var result = await broker.CallAsync(name, arguments, effectiveHostId, cancellationToken);
             return ToolResult(id, result.Result, result.IsError);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)

@@ -66,7 +66,8 @@ await mkdir(root, { recursive: true });
 await mkdir(wpsRoot, { recursive: true });
 const catalog = [];
 for (const [name, resource, body] of icons) {
-  const svg = wrap(body);
+  const stroke = name === "agent" ? "#2563eb" : "#202020";
+  const svg = wrap(body, stroke);
   const wpsSvg = wrap(body, "#2563eb");
   await writeFileIfChanged(join(root, `${name}.svg`), `${svg}\n`, "utf8");
   await writeFileIfChanged(join(wpsRoot, `${name}.svg`), `${wpsSvg}\n`, "utf8");

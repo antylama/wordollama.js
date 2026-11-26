@@ -2345,12 +2345,39 @@ function removeLocalSettings(key: string): void {
   }
 }
 
+function detectHostDarkTheme(): boolean {
+  try {
+    const bg = typeof Office !== "undefined" ? Office.context?.officeTheme?.bodyBackgroundColor : undefined;
+    if (typeof bg === "string" && /^#[0-9a-f]{6}$/i.test(bg.trim())) {
+      const hex = bg.trim().slice(1);
+      const r = Number.parseInt(hex.slice(0, 2), 16);
+      const g = Number.parseInt(hex.slice(2, 4), 16);
+      const b = Number.parseInt(hex.slice(4, 6), 16);
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance < 0.45;
+    }
+  } catch {
+    // Ignore OfficeTheme access issues outside Office host.
+  }
+  return typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+}
+
+function readExplicitDarkTheme(): boolean | undefined {
+  try {
+    const raw = window.localStorage.getItem("wordollama-general-settings");
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as { darkTheme?: unknown } | null;
+    if (parsed && typeof parsed.darkTheme === "boolean") return parsed.darkTheme;
+  } catch {
+    // Ignore storage read errors.
+  }
+  return undefined;
+}
+
 function syncStoredTheme(): void {
-  const settings = readLocalSettings("wordollama-general-settings", {
-    outputMode: "Auto", darkTheme: false,
-    suppressPlan: false, suppressDiff: false,
-  });
-  if (settings.darkTheme) document.documentElement.dataset.theme = "dark";
+  const explicit = readExplicitDarkTheme();
+  const isDark = explicit ?? detectHostDarkTheme();
+  if (isDark) document.documentElement.dataset.theme = "dark";
   else delete document.documentElement.dataset.theme;
 }
 
@@ -2359,6 +2386,7 @@ window.addEventListener("focus", syncStoredTheme);
 window.addEventListener("storage", (event) => {
   if (event.key === "wordollama-general-settings") syncStoredTheme();
 });
+window.matchMedia?.("(prefers-color-scheme: dark)")?.addEventListener?.("change", syncStoredTheme);
 
 const diagnosticSettings = readLocalSettings("wordollama-diagnostic-settings", { enabled: false });
 required<HTMLInputElement>("#setting-diagnostic-logging").checked = diagnosticSettings.enabled;
@@ -2799,6 +2827,7 @@ if (wpsHost) {
 } else {
   Office.onReady((info) => {
     officeReady = true;
+    syncStoredTheme();
     hostStatus.textContent = "";
     hostStatus.title = info.host
       ? i18n.t("taskpane.agent.hostConnected", { host: info.host })

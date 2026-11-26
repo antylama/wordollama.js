@@ -717,6 +717,20 @@ app.MapGet("/settings/word-mcp", (
     var token = httpRequest.Headers[BridgeProtocol.SessionHeader].FirstOrDefault();
     var origin = httpRequest.Headers.Origin.FirstOrDefault();
     if (!sessions.TryGet(token, origin, out _)) return Results.Unauthorized();
+    var hostId = httpRequest.Headers["X-WordOllama-Host"].FirstOrDefault()?.Trim();
+    if (!string.IsNullOrWhiteSpace(hostId))
+    {
+        var state = wordMcp.GetOrCreateHostState(hostId);
+        var hostEndpoint = state.Configured
+            ? $"{httpRequest.Scheme}://{httpRequest.Host}{WordMcpEndpoint.Path}/{state.AccessToken}"
+            : $"{httpRequest.Scheme}://{httpRequest.Host}{WordMcpEndpoint.Path}";
+        return Results.Ok(new
+        {
+            enabled = state.Enabled,
+            configured = state.Configured,
+            endpoint = hostEndpoint,
+        });
+    }
     return Results.Ok(new
     {
         enabled = wordMcp.Enabled,
@@ -734,6 +748,18 @@ app.MapPost("/settings/word-mcp/token/generate", (
     var sessionToken = httpRequest.Headers[BridgeProtocol.SessionHeader].FirstOrDefault();
     var origin = httpRequest.Headers.Origin.FirstOrDefault();
     if (!sessions.TryGet(sessionToken, origin, out _)) return Results.Unauthorized();
+    var hostId = httpRequest.Headers["X-WordOllama-Host"].FirstOrDefault()?.Trim();
+    if (!string.IsNullOrWhiteSpace(hostId))
+    {
+        var accessToken = wordMcp.GenerateHostToken(hostId);
+        return Results.Ok(new
+        {
+            enabled = true,
+            configured = true,
+            endpoint = $"{httpRequest.Scheme}://{httpRequest.Host}{WordMcpEndpoint.Path}/{accessToken}",
+            accessToken,
+        });
+    }
     try
     {
         var accessToken = wordMcp.GenerateAndEnable(secrets);
@@ -760,8 +786,20 @@ app.MapPost("/settings/word-mcp/enable", (
     var sessionToken = httpRequest.Headers[BridgeProtocol.SessionHeader].FirstOrDefault();
     var origin = httpRequest.Headers.Origin.FirstOrDefault();
     if (!sessions.TryGet(sessionToken, origin, out _)) return Results.Unauthorized();
+    var hostId = httpRequest.Headers["X-WordOllama-Host"].FirstOrDefault()?.Trim();
     try
     {
+        if (!string.IsNullOrWhiteSpace(hostId))
+        {
+            wordMcp.EnableHost(hostId);
+            var state = wordMcp.GetOrCreateHostState(hostId);
+            return Results.Ok(new
+            {
+                enabled = true,
+                configured = true,
+                endpoint = $"{httpRequest.Scheme}://{httpRequest.Host}{WordMcpEndpoint.Path}/{state.AccessToken}",
+            });
+        }
         wordMcp.Enable(secrets);
         return Results.Ok(new { enabled = true, configured = true,
             endpoint = $"{httpRequest.Scheme}://{httpRequest.Host}{WordMcpEndpoint.Path}" });
@@ -781,6 +819,20 @@ app.MapPost("/settings/word-mcp/disable", (
     var sessionToken = httpRequest.Headers[BridgeProtocol.SessionHeader].FirstOrDefault();
     var origin = httpRequest.Headers.Origin.FirstOrDefault();
     if (!sessions.TryGet(sessionToken, origin, out _)) return Results.Unauthorized();
+    var hostId = httpRequest.Headers["X-WordOllama-Host"].FirstOrDefault()?.Trim();
+    if (!string.IsNullOrWhiteSpace(hostId))
+    {
+        wordMcp.DisableHost(hostId);
+        var state = wordMcp.GetOrCreateHostState(hostId);
+        return Results.Ok(new
+        {
+            enabled = false,
+            configured = state.Configured,
+            endpoint = state.Configured
+                ? $"{httpRequest.Scheme}://{httpRequest.Host}{WordMcpEndpoint.Path}/{state.AccessToken}"
+                : $"{httpRequest.Scheme}://{httpRequest.Host}{WordMcpEndpoint.Path}",
+        });
+    }
     wordMcp.Disable(secrets);
     return Results.Ok(new { enabled = false, configured = true,
         endpoint = $"{httpRequest.Scheme}://{httpRequest.Host}{WordMcpEndpoint.Path}" });
@@ -794,8 +846,21 @@ app.MapPost("/settings/word-mcp/agent-config", (
     var sessionToken = httpRequest.Headers[BridgeProtocol.SessionHeader].FirstOrDefault();
     var origin = httpRequest.Headers.Origin.FirstOrDefault();
     if (!sessions.TryGet(sessionToken, origin, out _)) return Results.Unauthorized();
-    if (wordMcp.AccessToken.Length < 32)
-        return Results.BadRequest(new { error = "Generate a Word MCP access token first." });
+    var hostId = httpRequest.Headers["X-WordOllama-Host"].FirstOrDefault()?.Trim();
+    string accessToken;
+    if (!string.IsNullOrWhiteSpace(hostId))
+    {
+        var state = wordMcp.GetOrCreateHostState(hostId);
+        if (!state.Configured)
+            return Results.BadRequest(new { error = "Generate a Word MCP access token first." });
+        accessToken = state.AccessToken;
+    }
+    else
+    {
+        if (wordMcp.AccessToken.Length < 32)
+            return Results.BadRequest(new { error = "Generate a Word MCP access token first." });
+        accessToken = wordMcp.AccessToken;
+    }
     var endpoint = $"{httpRequest.Scheme}://{httpRequest.Host}{WordMcpEndpoint.Path}";
     var configuration = JsonSerializer.Serialize(new
     {
@@ -806,7 +871,7 @@ app.MapPost("/settings/word-mcp/agent-config", (
                 url = endpoint,
                 headers = new Dictionary<string, string>
                 {
-                    ["Authorization"] = $"Bearer {wordMcp.AccessToken}",
+                    ["Authorization"] = $"Bearer {accessToken}",
                 },
             },
         },
