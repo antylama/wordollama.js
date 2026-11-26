@@ -412,6 +412,12 @@ const descriptors: OfficeToolDescriptor[] = [
     },
   },
   {
+    name: "get_page_setup",
+    description: "Read current page setup (margins, orientation, paper size, dimensions, header/footer distances, and section flags) for all document sections, in points.",
+    isWriteOperation: false,
+    parameterSchema: { type: "object", properties: {}, required: [] },
+  },
+  {
     name: "page_setup",
     description: "Set margins and orientation for document sections, in points.",
     isWriteOperation: true,
@@ -524,7 +530,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "edit_style",
-    description: "Modify font formatting (font_color, font_name, font_size, bold, italic) on a style or \u0027*\u0027 for all styles in use.",
+    description: "Modify font formatting (font_color, font_name, font_size, bold, italic) on a style or '*' for all styles in use.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -765,6 +771,8 @@ export class OfficeJsToolRegistry {
       case "format_list":
         await this.word.formatList(this.requireString(args, "list_type"), this.requireSelectionHash(args));
         return { formatted: true };
+      case "get_page_setup":
+        return this.word.getPageSetup();
       case "page_setup":
         await this.word.pageSetup({
           marginTop: this.optionalNumber(args, "margin_top"),

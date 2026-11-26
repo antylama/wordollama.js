@@ -305,7 +305,7 @@ export class OfficeJsWordAdapter {
       "format_table",
     ];
     const wordApi12 = ["insert_image"];
-    const desktop13 = ["format_list", "page_setup"];
+    const desktop13 = ["format_list", "get_page_setup", "page_setup"];
     const desktop14 = ["read_bookmarks", "update_toc", "revisions"];
     if (wordApi14.includes(name)) {
       return requirements.isSetSupported("WordApi", "1.4");
@@ -1822,6 +1822,72 @@ export class OfficeJsWordAdapter {
         throw new Error("list_type must be bullet or number");
       }
       await context.sync();
+    });
+  }
+
+  async getPageSetup(): Promise<{
+    sections: Array<{
+      sectionIndex: number;
+      marginTop: number;
+      marginBottom: number;
+      marginLeft: number;
+      marginRight: number;
+      orientation: string;
+      paperSize: string;
+      pageWidth: number;
+      pageHeight: number;
+      gutter: number;
+      headerDistance: number;
+      footerDistance: number;
+      differentFirstPage: boolean;
+      oddEvenPages: boolean;
+      mirrorMargins: boolean;
+    }>;
+  }> {
+    return Word.run(async (context) => {
+      const sections = context.document.sections;
+      sections.load("items");
+      await context.sync();
+      const setups = sections.items.map((section) => {
+        const setup = section.pageSetup;
+        setup.load([
+          "topMargin",
+          "bottomMargin",
+          "leftMargin",
+          "rightMargin",
+          "orientation",
+          "paperSize",
+          "pageWidth",
+          "pageHeight",
+          "gutter",
+          "headerDistance",
+          "footerDistance",
+          "differentFirstPageHeaderFooter",
+          "oddAndEvenPagesHeaderFooter",
+          "mirrorMargins",
+        ]);
+        return setup;
+      });
+      await context.sync();
+      return {
+        sections: setups.map((setup, index) => ({
+          sectionIndex: index + 1,
+          marginTop: setup.topMargin,
+          marginBottom: setup.bottomMargin,
+          marginLeft: setup.leftMargin,
+          marginRight: setup.rightMargin,
+          orientation: String(setup.orientation),
+          paperSize: String(setup.paperSize),
+          pageWidth: setup.pageWidth,
+          pageHeight: setup.pageHeight,
+          gutter: setup.gutter,
+          headerDistance: setup.headerDistance,
+          footerDistance: setup.footerDistance,
+          differentFirstPage: setup.differentFirstPageHeaderFooter,
+          oddEvenPages: setup.oddAndEvenPagesHeaderFooter,
+          mirrorMargins: setup.mirrorMargins,
+        })),
+      };
     });
   }
 
