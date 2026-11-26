@@ -10,6 +10,7 @@ dist/
 .artifacts-*/
 artifacts/
 officejs/apps/addin/dist-manifest/
+dist-local/
 .env
 .env.local
 .env.*.local

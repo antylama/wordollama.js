@@ -205,15 +205,16 @@ var expectedUpdatePublicKeySha256 =
 var updateService = new UpdateIndexService(new HttpClient(), updateIndexUrl, bridgeVersion);
 var updateDownloadRoot = Path.Combine(settingsRoot, "updates");
 
+var allowRemoteAccess = builder.Configuration.GetValue("Bridge:AllowRemoteAccess", false);
 foreach (var configuredUrl in bridgeUrls.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
 {
     if (!Uri.TryCreate(configuredUrl, UriKind.Absolute, out var bridgeUri) ||
         (bridgeUri.Scheme != Uri.UriSchemeHttps &&
          !(bridgeUri.Scheme == Uri.UriSchemeHttp &&
-           bridgeUri.Host is "127.0.0.1" or "localhost" or "::1")))
+           (allowRemoteAccess || bridgeUri.Host is "127.0.0.1" or "localhost" or "::1"))))
     {
         throw new InvalidOperationException(
-            "Bridge URLs must use HTTPS; loopback HTTP is allowed for local-only deployments.");
+            "Bridge URLs must use HTTPS; loopback HTTP is allowed for local-only deployments (or set Bridge:AllowRemoteAccess=true behind a VPN/proxy).");
     }
 }
 
@@ -226,10 +227,10 @@ var httpsCertificatePassword =
 var bridgeEndpoints = bridgeUrls.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
     .Select(url => new Uri(url, UriKind.Absolute))
     .ToArray();
-if (wordMcpEnabled && bridgeEndpoints.Any(endpoint => !endpoint.IsLoopback))
+if (!allowRemoteAccess && wordMcpEnabled && bridgeEndpoints.Any(endpoint => !endpoint.IsLoopback))
 {
     throw new InvalidOperationException(
-        "The Word MCP endpoint controls a live document and may only be enabled on loopback Bridge URLs.");
+        "The Word MCP endpoint controls a live document and may only be enabled on loopback Bridge URLs unless Bridge:AllowRemoteAccess is true.");
 }
 if (bridgeEndpoints.Any(endpoint => endpoint.Scheme == Uri.UriSchemeHttps))
 {
@@ -371,12 +372,18 @@ if (Directory.Exists(addinWebRoot))
         },
     });
 }
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+var forwardedHeadersOptions = new ForwardedHeadersOptions
 {
     ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
         Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto |
         Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedHost,
-});
+};
+if (allowRemoteAccess)
+{
+    forwardedHeadersOptions.KnownNetworks.Clear();
+    forwardedHeadersOptions.KnownProxies.Clear();
+}
+app.UseForwardedHeaders(forwardedHeadersOptions);
 app.UseCors("officejs");
 app.Use(async (context, next) =>
 {
@@ -498,7 +505,7 @@ app.MapPost("/pair/automatic", (
     var remoteAddress = httpContext.Connection.RemoteIpAddress;
     var requestOrigin = httpContext.Request.Headers["Origin"].FirstOrDefault();
     if (remoteAddress is null ||
-        !IPAddress.IsLoopback(remoteAddress) ||
+        (!allowRemoteAccess && !IPAddress.IsLoopback(remoteAddress)) ||
         string.IsNullOrWhiteSpace(requestOrigin) ||
         !string.Equals(requestOrigin, request.Origin, StringComparison.OrdinalIgnoreCase))
     {
