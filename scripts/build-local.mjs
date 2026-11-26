@@ -37,31 +37,42 @@ function run(command, args, cwd = repoRoot) {
   execSync([command, ...args].join(" "), { cwd, stdio: "inherit" });
 }
 
-console.log("[1/3] Building Office.js frontend bundle...");
+const uiOnly = process.argv.includes("ui");
+const listenPublic =
+  process.argv.includes("public") ||
+  process.argv.includes("--public") ||
+  process.env.WORDOLLAMA_ALLOW_REMOTE === "1";
+
+console.log(uiOnly ? "[1/2] Building Office.js frontend bundle..." : "[1/3] Building Office.js frontend bundle...");
 run("npm", ["--prefix", "officejs/apps/addin", "run", "bundle"]);
 
-console.log("[2/3] Publishing Desktop Bridge...");
-try {
-  rmSync(outDir, { recursive: true, force: true });
-} catch (error) {
-  if (error?.code === "EPERM" || error?.code === "EBUSY") {
-    console.error(`\nCannot clean ${outDir} (${error.code}) — stop the running Desktop Bridge (Ctrl+C on start:local / start:public) first.`);
-    process.exit(1);
+if (!uiOnly) {
+  console.log("[2/3] Publishing Desktop Bridge...");
+  try {
+    rmSync(outDir, { recursive: true, force: true });
+  } catch (error) {
+    if (error?.code === "EPERM" || error?.code === "EBUSY") {
+      console.error(`\nCannot clean ${outDir} (${error.code}) — stop the running Desktop Bridge (Ctrl+C on start:local / start:public) first.`);
+      process.exit(1);
+    }
+    throw error;
   }
-  throw error;
+  mkdirSync(outDir, { recursive: true });
+  run("dotnet", [
+    "publish",
+    "src/WordOllama.DesktopBridge/WordOllama.DesktopBridge.csproj",
+    "-c",
+    "Release",
+    "-o",
+    outDir,
+  ]);
 }
-mkdirSync(outDir, { recursive: true });
-run("dotnet", [
-  "publish",
-  "src/WordOllama.DesktopBridge/WordOllama.DesktopBridge.csproj",
-  "-c",
-  "Release",
-  "-o",
-  outDir,
-]);
 
-console.log("[3/3] Copying frontend bundle and assets into wwwroot...");
+console.log(uiOnly ? "[2/2] Updating wwwroot in place..." : "[3/3] Copying frontend bundle and assets into wwwroot...");
 const wwwroot = join(outDir, "wwwroot");
+if (uiOnly) {
+  rmSync(wwwroot, { recursive: true, force: true });
+}
 mkdirSync(wwwroot, { recursive: true });
 cpSync(join(addinRoot, "dist"), wwwroot, { recursive: true });
 if (existsSync(join(addinRoot, "assets"))) {
@@ -72,10 +83,11 @@ if (existsSync(join(addinRoot, "assets"))) {
   }
 }
 
-const listenPublic =
-  process.argv.includes("public") ||
-  process.argv.includes("--public") ||
-  process.env.WORDOLLAMA_ALLOW_REMOTE === "1";
+if (uiOnly) {
+  console.log("\nDone. Frontend updated in dist-local/wwwroot (no Bridge restart needed).");
+  process.exit(0);
+}
+
 const listenUrl = (process.env.WORDOLLAMA_LISTEN_URL || (listenPublic ? "http://0.0.0.0:37421" : "")).trim();
 const addinOrigin = (process.env.WORDOLLAMA_ADDIN_URL || "").trim().replace(/\/+$/, "");
 const appSettingsPath = join(outDir, "appsettings.json");
