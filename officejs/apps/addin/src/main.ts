@@ -2362,21 +2362,24 @@ function detectHostDarkTheme(): boolean {
   return typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
 }
 
-function readExplicitDarkTheme(): boolean | undefined {
+function readThemeMode(): "auto" | "light" | "dark" {
   try {
     const raw = window.localStorage.getItem("wordollama-general-settings");
-    if (!raw) return undefined;
-    const parsed = JSON.parse(raw) as { darkTheme?: unknown } | null;
-    if (parsed && typeof parsed.darkTheme === "boolean") return parsed.darkTheme;
+    if (!raw) return "auto";
+    const parsed = JSON.parse(raw) as { themeMode?: unknown; darkTheme?: unknown } | null;
+    if (parsed?.themeMode === "auto" || parsed?.themeMode === "light" || parsed?.themeMode === "dark") {
+      return parsed.themeMode;
+    }
+    if (parsed?.darkTheme === true) return "dark";
   } catch {
     // Ignore storage read errors.
   }
-  return undefined;
+  return "auto";
 }
 
 function syncStoredTheme(): void {
-  const explicit = readExplicitDarkTheme();
-  const isDark = explicit ?? detectHostDarkTheme();
+  const mode = readThemeMode();
+  const isDark = mode === "dark" ? true : mode === "light" ? false : detectHostDarkTheme();
   if (isDark) document.documentElement.dataset.theme = "dark";
   else delete document.documentElement.dataset.theme;
 }

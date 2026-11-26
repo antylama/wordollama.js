@@ -145,9 +145,12 @@
     "deleteSelected": "删除所选",
     "deleteAll": "全部删除",
     "selectMemory": "选择记忆：{{memory}}",
-    "darkTheme": "使用深色外观",
     "suppressPlan": "执行 Agent 计划前不再确认",
-    "save": "保存偏好"
+    "save": "保存偏好",
+    "themeMode": "外观主题",
+    "themeAuto": "自动",
+    "themeLight": "浅色",
+    "themeDark": "深色"
   },
   "models": {
     "ollamaExternalHint": "没有检测到可用的 Ollama 服务。WordOllama.JS 不会安装或配置 Ollama，请先从官方网站安装并启动，然后重新读取模型。",

@@ -145,9 +145,12 @@
     "deleteSelected": "Usuń zaznaczone",
     "deleteAll": "Usuń wszystko",
     "selectMemory": "Zaznacz instrukcję: {{memory}}",
-    "darkTheme": "Ciemny motyw",
     "suppressPlan": "Uruchamiaj plany Agenta bez potwierdzenia",
-    "save": "Zapisz preferencje"
+    "save": "Zapisz preferencje",
+    "themeMode": "Motyw",
+    "themeAuto": "Automatyczny",
+    "themeLight": "Jasny",
+    "themeDark": "Ciemny"
   },
   "models": {
     "ollamaExternalHint": "Nie wykryto działającej usługi Ollama. WordOllama.JS nie instaluje Ollamy — uruchom ją lokalnie i pobierz listę modeli ponownie.",

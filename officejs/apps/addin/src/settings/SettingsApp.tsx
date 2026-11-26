@@ -284,14 +284,22 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
   const [settings, setSettings] = useState(() => {
     const stored = readStored("wordollama-general-settings", {
       outputMode: "Auto",
+      themeMode: undefined as "auto" | "light" | "dark" | undefined,
       darkTheme: undefined as boolean | undefined,
       suppressPlan: false,
       suppressDiff: false,
     });
-    const hostDark = typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+    const themeMode: "auto" | "light" | "dark" =
+      stored.themeMode === "auto" || stored.themeMode === "light" || stored.themeMode === "dark"
+        ? stored.themeMode
+        : stored.darkTheme === true
+          ? "dark"
+          : "auto";
     return {
-      ...stored,
-      darkTheme: typeof stored.darkTheme === "boolean" ? stored.darkTheme : hostDark,
+      outputMode: stored.outputMode,
+      themeMode,
+      suppressPlan: stored.suppressPlan,
+      suppressDiff: stored.suppressDiff,
     };
   });
   const [reviewSettings, setReviewSettings] = useState({
@@ -319,9 +327,15 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
       });
   }, []);
 
+  const resolveThemeDark = (mode: "auto" | "light" | "dark"): boolean => {
+    if (mode === "dark") return true;
+    if (mode === "light") return false;
+    return typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+  };
+
   const update = <K extends keyof typeof settings>(key: K, value: (typeof settings)[K]) => {
     setSettings((current) => ({ ...current, [key]: value }));
-    if (key === "darkTheme") onThemeChange(Boolean(value));
+    if (key === "themeMode") onThemeChange(resolveThemeDark(value as "auto" | "light" | "dark"));
   };
 
   const changeLocale = async (value: UiLocalePreference) => {
@@ -349,7 +363,8 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
     }
     writeStored("wordollama-general-settings", {
       outputMode: settings.outputMode,
-      darkTheme: settings.darkTheme,
+      themeMode: settings.themeMode,
+      darkTheme: resolveThemeDark(settings.themeMode),
       suppressPlan: settings.suppressPlan,
       suppressDiff: settings.suppressDiff,
     });
@@ -434,14 +449,18 @@ function GeneralPage({ onThemeChange }: { onThemeChange: (dark: boolean) => void
                 <option value="zh-CN">{t("general.uiLanguageChinese")}</option>
               </select>
             </label>
-            <label className="settings-control-row">
-              <span className="settings-control-label">{t("general.darkTheme")}</span>
-              <input
-                className="toggle toggle-primary toggle-sm"
-                type="checkbox"
-                checked={settings.darkTheme}
-                onChange={(event) => update("darkTheme", event.currentTarget.checked)}
-              />
+            <label className="settings-control-row" htmlFor="theme-mode">
+              <span className="settings-control-label">{t("general.themeMode")}</span>
+              <select
+                id="theme-mode"
+                className="select select-sm"
+                value={settings.themeMode}
+                onChange={(event) => update("themeMode", event.currentTarget.value as "auto" | "light" | "dark")}
+              >
+                <option value="auto">{t("general.themeAuto")}</option>
+                <option value="light">{t("general.themeLight")}</option>
+                <option value="dark">{t("general.themeDark")}</option>
+              </select>
             </label>
           </div>
         </Card>
@@ -2267,8 +2286,13 @@ export function SettingsApp() {
   const [page, setPage] = useState<PageId>("general");
   const [visitedPages, setVisitedPages] = useState<Set<PageId>>(() => new Set(["general"]));
   const initialSettings = useMemo(() => {
-    const stored = readStored("wordollama-general-settings", { darkTheme: undefined as boolean | undefined });
-    if (typeof stored.darkTheme === "boolean") return stored.darkTheme;
+    const stored = readStored("wordollama-general-settings", {
+      themeMode: undefined as "auto" | "light" | "dark" | undefined,
+      darkTheme: undefined as boolean | undefined,
+    });
+    if (stored.themeMode === "dark") return true;
+    if (stored.themeMode === "light") return false;
+    if (stored.themeMode !== "auto" && stored.darkTheme === true) return true;
     return typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
   }, []);
   const [darkTheme, setDarkTheme] = useState(initialSettings);

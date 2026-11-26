@@ -145,9 +145,12 @@
     "deleteSelected": "Delete selected",
     "deleteAll": "Delete all",
     "selectMemory": "Select instruction: {{memory}}",
-    "darkTheme": "Use dark appearance",
     "suppressPlan": "Run Agent plans without confirmation",
-    "save": "Save preferences"
+    "save": "Save preferences",
+    "themeMode": "Appearance",
+    "themeAuto": "Automatic",
+    "themeLight": "Light",
+    "themeDark": "Dark"
   },
   "models": {
     "ollamaExternalHint": "No usable Ollama service was detected. WordOllama.JS does not install or configure Ollama; install and start it from the official site, then fetch models again.",
