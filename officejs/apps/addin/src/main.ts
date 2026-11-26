@@ -533,6 +533,23 @@ function scheduleBridgeReconnect(): void {
   }, bridgeReconnectDelayMs);
 }
 
+let hostActivityListenersRegistered = false;
+function registerHostActivityListeners(): void {
+  if (hostActivityListenersRegistered || typeof window === "undefined") return;
+  hostActivityListenersRegistered = true;
+  window.addEventListener("focus", () => {
+    void runtime.reportHostActivity(true);
+  });
+  window.addEventListener("blur", () => {
+    void runtime.reportHostActivity(false);
+  });
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      void runtime.reportHostActivity(document.visibilityState !== "hidden" && document.hasFocus());
+    });
+  }
+}
+
 async function activateBridgeSession(): Promise<ToolCatalogResponse> {
   if (bridgePaired && bridgeCatalog) {
     ensureExternalOfficeToolLoop();
@@ -559,6 +576,7 @@ async function activateBridgeSession(): Promise<ToolCatalogResponse> {
         bridgeReconnectTimer = null;
       }
       ensureExternalOfficeToolLoop();
+      registerHostActivityListeners();
       configureSilentLinter();
       await refreshAvailableSkills().catch((error) =>
         appendDiagnostic("skills", `automatic refresh failed: ${error instanceof Error ? error.message : String(error)}`));

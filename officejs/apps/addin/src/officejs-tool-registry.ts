@@ -13,13 +13,13 @@ const expectedSelectionHashSchema = {
 const descriptors: OfficeToolDescriptor[] = [
   {
     name: "get_selection",
-    description: "get_selection",
+    description: "Read the current Word selection and return the selectionHash required by selection-based write tools.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
     name: "select_exact_text",
-    description: "select_exact_text",
+    description: "Select text only when one unique, case-sensitive exact match exists and return its selectionHash; refuses zero or ambiguous matches. Changes the visible Word selection but not document content.",
     // Selection is visible, shared host state. Treat it as a write for MCP
     // approval and multi-document targeting even though document text is unchanged.
     isWriteOperation: true,
@@ -34,7 +34,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "search_text",
-    description: "search_text",
+    description: "Search for text in the current Word document.",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
@@ -44,13 +44,13 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "get_doc_overview",
-    description: "get_doc_overview",
+    description: "Read the document paragraph count and opening preview.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
     name: "insert_text_at_end",
-    description: "insert_text_at_end",
+    description: "Insert text at the end of the current Word document.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -60,7 +60,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "read_paragraphs",
-    description: "read_paragraphs",
+    description: "Read a specified range of Word paragraphs.",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
@@ -70,7 +70,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "read_large_chunk",
-    description: "read_large_chunk",
+    description: "Read up to 50 paragraphs starting at a specified paragraph.",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
@@ -80,25 +80,25 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "build_semantic_map",
-    description: "build_semantic_map",
+    description: "Build a document semantic map from paragraph chunks.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
     name: "read_comments",
-    description: "read_comments",
+    description: "Read comments in the current document.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
     name: "read_bookmarks",
-    description: "read_bookmarks",
+    description: "Read bookmarks and their range text in the current document.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
     name: "apply_style",
-    description: "apply_style",
+    description: "Apply a style to a specified paragraph.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -108,7 +108,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "replace_paragraph",
-    description: "replace_paragraph",
+    description: "Replace the text of a specified paragraph.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -118,7 +118,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "delete_paragraph",
-    description: "delete_paragraph",
+    description: "Delete a paragraph by its 1-based paragraph_index.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -134,7 +134,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "insert_at_cursor",
-    description: "insert_at_cursor",
+    description: "Insert text at the current Word cursor or selection.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -144,7 +144,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "insert_hyperlink",
-    description: "insert_hyperlink",
+    description: "Insert a clickable hyperlink at the cursor or over the current selection.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -158,7 +158,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "add_comment",
-    description: "add_comment",
+    description: "Add a comment to the current selection.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -168,7 +168,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "find_replace",
-    description: "find_replace",
+    description: "Find and replace text in the document.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -178,7 +178,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "format_paragraph",
-    description: "format_paragraph",
+    description: "Set paragraph alignment and spacing before or after it.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -193,7 +193,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "format_text",
-    description: "format_text",
+    description: "Set font formatting for the current selection.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -211,7 +211,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "insert_page_break",
-    description: "insert_page_break",
+    description: "Insert a page break at the current cursor.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -221,7 +221,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "read_table",
-    description: "read_table",
+    description: "Read a specified Word table as two-dimensional cell data. table_index is 1-based (first table is 1).",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
@@ -237,7 +237,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "insert_table",
-    description: "insert_table",
+    description: "Insert a Word table at the end of the document.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -251,7 +251,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "table_insert_row",
-    description: "table_insert_row",
+    description: "Insert a row in a Word table.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -261,7 +261,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "table_set_cell",
-    description: "table_set_cell",
+    description: "Set text in a Word table cell.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -276,7 +276,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "edit_table_structure",
-    description: "edit_table_structure",
+    description: "Add or remove table rows and columns, or merge and split cells.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -294,7 +294,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "format_table",
-    description: "format_table",
+    description: "Set table style, header rows, alignment, shading, borders, and AutoFit.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -315,13 +315,13 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "get_document_outline",
-    description: "get_document_outline",
+    description: "Read the document outline from heading paragraphs.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
     name: "read_clause",
-    description: "read_clause",
+    description: "Read document clauses matching a keyword.",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
@@ -331,19 +331,19 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "extract_definitions",
-    description: "extract_definitions",
+    description: "Extract common definition clauses from the document.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
     name: "check_cross_references",
-    description: "check_cross_references",
+    description: "Scan clause cross-references in the document.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {}, required: [] },
   },
   {
     name: "insert_clause_after",
-    description: "insert_clause_after",
+    description: "Insert a clause after specified anchor text.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -353,7 +353,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "highlight_risk",
-    description: "highlight_risk",
+    description: "Highlight risk keywords in the document.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -363,7 +363,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "apply_legal_format",
-    description: "apply_legal_format",
+    description: "Apply legal-document font and line-spacing formatting in one operation.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -380,7 +380,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "validate_citation",
-    description: "validate_citation",
+    description: "Validate that a citation contains a year and article number.",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
@@ -390,7 +390,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "insert_image",
-    description: "insert_image",
+    description: "Insert a Base64 image at the end of the document.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -400,7 +400,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "format_list",
-    description: "format_list",
+    description: "Format the current selection as a bulleted or numbered list.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -413,7 +413,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "page_setup",
-    description: "page_setup",
+    description: "Set margins and orientation for document sections, in points.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -438,7 +438,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "header_footer",
-    description: "header_footer",
+    description: "Set header or footer text in the first section.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -454,7 +454,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "update_toc",
-    description: "update_toc",
+    description: "Update an existing table of contents or insert one at the start of the document.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -471,7 +471,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "replace_exact_text",
-    description: "replace_exact_text",
+    description: "Replace exact document text using the legacy-compatible tool name.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -481,7 +481,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "apply_precise_revision",
-    description: "apply_precise_revision",
+    description: "Apply only the changed hunks to the current selection as tracked Word revisions; fails safely if the selection changed.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -495,7 +495,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "ask_human",
-    description: "ask_human",
+    description: "Ask the Word user a question and wait for confirmation or input. Always provide 1 to 3 concise options when possible so the user can answer with one click.",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
@@ -512,7 +512,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "list_styles",
-    description: "list_styles",
+    description: "List document styles (name, type, inUse, font color, size, font name).",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
@@ -524,7 +524,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "edit_style",
-    description: "edit_style",
+    description: "Modify font formatting (font_color, font_name, font_size, bold, italic) on a style or \u0027*\u0027 for all styles in use.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -550,13 +550,13 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "get_track_changes",
-    description: "get_track_changes",
+    description: "Read whether Word Track Changes is currently enabled and its mode.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {} },
   },
   {
     name: "set_track_changes",
-    description: "set_track_changes",
+    description: "Enable or disable Word Track Changes for the active document.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -569,7 +569,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "reply_to_comment",
-    description: "reply_to_comment",
+    description: "Reply to an existing comment thread by its 1-based comment_index from read_comments.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -582,7 +582,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "resolve_comment",
-    description: "resolve_comment",
+    description: "Mark an existing comment as resolved (or reopen it) by comment_index.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -595,7 +595,7 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "delete_comment",
-    description: "delete_comment",
+    description: "Delete an existing comment by its 1-based comment_index from read_comments.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -607,13 +607,13 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "read_footnotes",
-    description: "read_footnotes",
+    description: "Read all footnotes in the active Word document.",
     isWriteOperation: false,
     parameterSchema: { type: "object", properties: {} },
   },
   {
     name: "insert_footnote",
-    description: "insert_footnote",
+    description: "Insert a footnote at the current cursor position or selection.",
     isWriteOperation: true,
     parameterSchema: {
       type: "object",
@@ -636,7 +636,7 @@ export class OfficeJsToolRegistry {
   list(): OfficeToolDescriptor[] {
     return descriptors.filter((descriptor) => this.word.supportsTool(descriptor.name)).map((descriptor) => ({
       ...descriptor,
-      description: i18n.t(`taskpane.toolDescriptions.${descriptor.description}`),
+      description: descriptor.description,
       // Tool schemas are JSON values. A JSON clone keeps WPS WebViews that do
       // not yet expose structuredClone from failing during task-pane startup.
       parameterSchema: JSON.parse(JSON.stringify(descriptor.parameterSchema)) as Record<string, unknown>,

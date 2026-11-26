@@ -336,7 +336,7 @@ public static class WordMcpEndpoint
             {
                 name = StatusToolName,
                 title = "Word host status",
-                description = "List connected WordOllama task panes and their opaque host_id values. No document paths or contents are disclosed.",
+                description = "List connected WordOllama task panes ordered most-recently-active first, with host_id, documentName (filename only, no full path), platform, isFocused, lastFocusedAt, and isMostRecentlyActive. No document paths or contents are disclosed.",
                 inputSchema = new { type = "object", properties = new { } },
                 annotations = new
                 {

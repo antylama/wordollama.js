@@ -14,7 +14,12 @@ public sealed record OfficeToolBrokerStatus(
 public sealed record OfficeToolHostInfo(
     string HostId,
     int ToolCount,
-    DateTimeOffset LastSeenAt);
+    DateTimeOffset LastSeenAt,
+    string? DocumentName = null,
+    string? Platform = null,
+    bool IsFocused = false,
+    DateTimeOffset? LastFocusedAt = null,
+    bool IsMostRecentlyActive = false);
 
 /// <summary>
 /// Relays external MCP tool calls to an authenticated Office.js task pane. The
@@ -41,7 +46,10 @@ public sealed class OfficeToolBroker
         string sessionToken,
         string hostId,
         string origin,
-        IReadOnlyList<OfficeToolDescriptor> tools)
+        IReadOnlyList<OfficeToolDescriptor> tools,
+        string? documentName = null,
+        string? platform = null,
+        bool? isFocused = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionToken);
         ArgumentException.ThrowIfNullOrWhiteSpace(hostId);
@@ -49,15 +57,27 @@ public sealed class OfficeToolBroker
         var now = _timeProvider.GetUtcNow();
         _hosts.AddOrUpdate(
             hostId,
-            _ => new HostState(sessionToken, hostId, origin, tools, now),
+            _ => new HostState(sessionToken, hostId, origin, tools, now, documentName, platform, isFocused ?? true),
             (_, host) =>
             {
                 if (!host.IsOwnedBy(sessionToken))
                     throw new InvalidOperationException("The Office host identifier belongs to another session.");
-                host.Update(origin, tools, now);
+                host.Update(origin, tools, now, documentName, platform, isFocused);
                 return host;
             });
         RemoveStaleHosts(now);
+    }
+
+    public bool TouchActivity(
+        string sessionToken,
+        string hostId,
+        string? documentName = null,
+        string? platform = null,
+        bool? isFocused = null)
+    {
+        if (!_hosts.TryGetValue(hostId, out var host) || !host.IsOwnedBy(sessionToken)) return false;
+        host.UpdateActivity(_timeProvider.GetUtcNow(), documentName, platform, isFocused);
+        return true;
     }
 
     public async Task<ExternalOfficeToolCall?> WaitForCallAsync(
@@ -151,9 +171,13 @@ public sealed class OfficeToolBroker
             .Where(host => now - host.LastSeenAt <= _hostTimeout)
             .Where(host => string.IsNullOrWhiteSpace(hostId) ||
                            string.Equals(host.HostId, hostId, StringComparison.Ordinal))
-            .OrderByDescending(host => host.LastSeenAt)
+            .OrderByDescending(host => host.IsFocused)
+            .ThenByDescending(host => host.LastFocusedAt ?? host.LastSeenAt)
+            .ThenByDescending(host => host.LastSeenAt)
             .ToArray();
-        var hosts = active.Select(host => host.Describe()).ToArray();
+        var hosts = active
+            .Select((host, index) => host.Describe(isMostRecentlyActive: index == 0))
+            .ToArray();
         return new OfficeToolBrokerStatus(
             active.Length > 0,
             active.Length,
@@ -173,7 +197,9 @@ public sealed class OfficeToolBroker
             .Where(host => string.IsNullOrWhiteSpace(hostId) ||
                            string.Equals(host.HostId, hostId, StringComparison.Ordinal))
             .Where(host => requiredTool is null || host.Supports(requiredTool))
-            .OrderByDescending(host => host.LastSeenAt)
+            .OrderByDescending(host => host.IsFocused)
+            .ThenByDescending(host => host.LastFocusedAt ?? host.LastSeenAt)
+            .ThenByDescending(host => host.LastSeenAt)
             .ToArray();
     }
 
@@ -201,17 +227,28 @@ public sealed class OfficeToolBroker
             string hostId,
             string origin,
             IReadOnlyList<OfficeToolDescriptor> tools,
-            DateTimeOffset lastSeenAt)
+            DateTimeOffset lastSeenAt,
+            string? documentName = null,
+            string? platform = null,
+            bool isFocused = true)
         {
             SessionToken = sessionToken;
             HostId = hostId;
             _origin = origin;
             _tools = tools.ToArray();
             _lastSeenAt = lastSeenAt;
+            _documentName = NormalizeMetadata(documentName);
+            _platform = NormalizeMetadata(platform);
+            _isFocused = isFocused;
+            _lastFocusedAt = isFocused ? lastSeenAt : null;
         }
 
         private string _origin;
         private DateTimeOffset _lastSeenAt;
+        private string? _documentName;
+        private string? _platform;
+        private bool _isFocused;
+        private DateTimeOffset? _lastFocusedAt;
 
         public string SessionToken { get; }
         public string HostId { get; }
@@ -225,6 +262,16 @@ public sealed class OfficeToolBroker
         {
             get { lock (_gate) return _lastSeenAt; }
         }
+
+        public bool IsFocused
+        {
+            get { lock (_gate) return _isFocused; }
+        }
+
+        public DateTimeOffset? LastFocusedAt
+        {
+            get { lock (_gate) return _lastFocusedAt; }
+        }
         public Channel<ExternalOfficeToolCall> Queue { get; } =
             Channel.CreateUnbounded<ExternalOfficeToolCall>(new UnboundedChannelOptions
             {
@@ -237,13 +284,30 @@ public sealed class OfficeToolBroker
         public void Update(
             string origin,
             IReadOnlyList<OfficeToolDescriptor> tools,
-            DateTimeOffset timestamp)
+            DateTimeOffset timestamp,
+            string? documentName = null,
+            string? platform = null,
+            bool? isFocused = null)
         {
             lock (_gate)
             {
                 _origin = origin;
                 _tools = tools.ToArray();
                 _lastSeenAt = timestamp;
+                ApplyMetadataLocked(timestamp, documentName, platform, isFocused);
+            }
+        }
+
+        public void UpdateActivity(
+            DateTimeOffset timestamp,
+            string? documentName,
+            string? platform,
+            bool? isFocused)
+        {
+            lock (_gate)
+            {
+                _lastSeenAt = timestamp;
+                ApplyMetadataLocked(timestamp, documentName, platform, isFocused);
             }
         }
 
@@ -253,6 +317,33 @@ public sealed class OfficeToolBroker
             {
                 _lastSeenAt = timestamp;
             }
+        }
+
+        private void ApplyMetadataLocked(
+            DateTimeOffset timestamp,
+            string? documentName,
+            string? platform,
+            bool? isFocused)
+        {
+            var normalizedDoc = NormalizeMetadata(documentName);
+            if (normalizedDoc is not null) _documentName = normalizedDoc;
+            var normalizedPlatform = NormalizeMetadata(platform);
+            if (normalizedPlatform is not null) _platform = normalizedPlatform;
+            if (isFocused.HasValue)
+            {
+                _isFocused = isFocused.Value;
+                if (isFocused.Value)
+                {
+                    _lastFocusedAt = timestamp;
+                }
+            }
+        }
+
+        private static string? NormalizeMetadata(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            var trimmed = value.Trim();
+            return trimmed.Length <= 200 ? trimmed : trimmed[..200];
         }
 
         public IReadOnlyList<OfficeToolDescriptor> GetTools()
@@ -274,11 +365,19 @@ public sealed class OfficeToolBroker
         public bool IsOwnedBy(string sessionToken) =>
             string.Equals(SessionToken, sessionToken, StringComparison.Ordinal);
 
-        public OfficeToolHostInfo Describe()
+        public OfficeToolHostInfo Describe(bool isMostRecentlyActive = false)
         {
             lock (_gate)
             {
-                return new OfficeToolHostInfo(HostId, _tools.Count, _lastSeenAt);
+                return new OfficeToolHostInfo(
+                    HostId,
+                    _tools.Count,
+                    _lastSeenAt,
+                    _documentName,
+                    _platform,
+                    _isFocused,
+                    _lastFocusedAt,
+                    isMostRecentlyActive);
             }
         }
     }

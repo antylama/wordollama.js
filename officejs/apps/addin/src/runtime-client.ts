@@ -81,6 +81,33 @@ function createOfficeHostId(): string {
     : `word-host-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function getOfficeHostMetadata(): {
+  documentName?: string;
+  platform?: string;
+  isFocused: boolean;
+} {
+  let documentName: string | undefined;
+  let platform: string | undefined;
+  try {
+    const officeContext = (globalThis as { Office?: { context?: { document?: { url?: string }; platform?: unknown } } })
+      .Office?.context;
+    const rawUrl = officeContext?.document?.url?.trim();
+    if (rawUrl) {
+      const base = rawUrl.split(/[\\/]/).pop()?.split("?")[0]?.trim();
+      if (base) documentName = base.slice(0, 200);
+    }
+    if (officeContext?.platform !== undefined && officeContext?.platform !== null) {
+      platform = String(officeContext.platform).trim().slice(0, 64) || undefined;
+    }
+  } catch {
+    // Ignore Office.context access errors outside Word.
+  }
+  const isFocused = typeof document !== "undefined"
+    ? document.hasFocus() && document.visibilityState !== "hidden"
+    : true;
+  return { documentName, platform, isFocused };
+}
+
 function getOrCreateOfficeHostId(): string {
   const storageKey = "wordollama-office-host-id";
   try {
@@ -270,13 +297,14 @@ export class RuntimeClient {
       throw new Error(tr("runtime.pairFirst"));
     }
 
+    const metadata = getOfficeHostMetadata();
     let response = await this.sessionFetch(`${BRIDGE_URL}/capabilities`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-WordOllama-Session": this.sessionToken,
       },
-      body: JSON.stringify({ tools, hostId: this.officeHostId }),
+      body: JSON.stringify({ tools, hostId: this.officeHostId, ...metadata }),
     });
 
     if (response.status === 409) {
@@ -288,7 +316,7 @@ export class RuntimeClient {
           "Content-Type": "application/json",
           "X-WordOllama-Session": this.sessionToken,
         },
-        body: JSON.stringify({ tools, hostId: this.officeHostId }),
+        body: JSON.stringify({ tools, hostId: this.officeHostId, ...metadata }),
       });
     }
 
@@ -469,29 +497,24 @@ export class RuntimeClient {
   }
 
   async getWordMcpSettings(): Promise<WordMcpSettingsView> {
-    return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp", {
-      headers: { "X-WordOllama-Host": this.officeHostId },
-    });
+    return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp");
   }
 
   async generateWordMcpToken(): Promise<WordMcpSettingsView> {
     return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp/token/generate", {
       method: "POST",
-      headers: { "X-WordOllama-Host": this.officeHostId },
     });
   }
 
   async enableWordMcp(): Promise<WordMcpSettingsView> {
     return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp/enable", {
       method: "POST",
-      headers: { "X-WordOllama-Host": this.officeHostId },
     });
   }
 
   async disableWordMcp(): Promise<WordMcpSettingsView> {
     return this.settingsRequest<WordMcpSettingsView>("/settings/word-mcp/disable", {
       method: "POST",
-      headers: { "X-WordOllama-Host": this.officeHostId },
     });
   }
 
@@ -500,10 +523,32 @@ export class RuntimeClient {
       "/settings/word-mcp/agent-config",
       {
         method: "POST",
-        headers: { "X-WordOllama-Host": this.officeHostId },
       },
     );
     return result.configuration;
+  }
+
+  async reportHostActivity(isFocused?: boolean): Promise<void> {
+    if (!this.sessionToken) return;
+    const metadata = getOfficeHostMetadata();
+    try {
+      await this.sessionFetch(
+        `${BRIDGE_URL}/office-tools/hosts/${encodeURIComponent(this.officeHostId)}/activity`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-WordOllama-Session": this.sessionToken,
+          },
+          body: JSON.stringify({
+            ...metadata,
+            isFocused: isFocused ?? metadata.isFocused,
+          }),
+        },
+      );
+    } catch {
+      // Activity updates are best-effort.
+    }
   }
 
   async saveReviewSettings(

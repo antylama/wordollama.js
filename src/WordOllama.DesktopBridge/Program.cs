@@ -663,7 +663,14 @@ app.MapPost("/capabilities", (
     sessions.RegisterOfficeTools(token!, request.Tools);
     try
     {
-        officeTools.RegisterHost(token!, hostId, origin!, request.Tools);
+        officeTools.RegisterHost(
+            token!,
+            hostId,
+            origin!,
+            request.Tools,
+            request.DocumentName,
+            request.Platform,
+            request.IsFocused);
     }
     catch (InvalidOperationException)
     {
@@ -715,6 +722,21 @@ app.MapPost("/office-tools/hosts/{hostId}/requests/{callId}/result", (
     return officeTools.CompleteCall(token!, hostId, callId, request)
         ? Results.Ok(new { accepted = true })
         : Results.NotFound(new { error = "office_tool_call_not_pending" });
+});
+
+app.MapPost("/office-tools/hosts/{hostId}/activity", (
+    HttpRequest httpRequest,
+    string hostId,
+    OfficeHostActivityRequest request,
+    BridgeSessionStore sessions,
+    OfficeToolBroker officeTools) =>
+{
+    var token = httpRequest.Headers[BridgeProtocol.SessionHeader].FirstOrDefault();
+    var origin = httpRequest.Headers.Origin.FirstOrDefault();
+    if (!sessions.TryGet(token, origin, out _)) return Results.Unauthorized();
+    return officeTools.TouchActivity(token!, hostId, request.DocumentName, request.Platform, request.IsFocused)
+        ? Results.Ok(new { updated = true })
+        : Results.NotFound(new { error = "office_host_not_found" });
 });
 
 app.MapPost(WordMcpEndpoint.Path, (

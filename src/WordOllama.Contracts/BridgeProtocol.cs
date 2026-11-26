@@ -58,7 +58,15 @@ public sealed record OfficeToolDescriptor(
 
 public sealed record ToolCatalogRequest(
     IReadOnlyList<OfficeToolDescriptor> Tools,
-    string? HostId = null);
+    string? HostId = null,
+    string? DocumentName = null,
+    string? Platform = null,
+    bool? IsFocused = null);
+
+public sealed record OfficeHostActivityRequest(
+    string? DocumentName = null,
+    string? Platform = null,
+    bool? IsFocused = null);
 
 public sealed record ToolCatalogResponse(
     string ProtocolVersion,
