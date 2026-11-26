@@ -744,7 +744,30 @@ export class OfficeJsWordAdapter {
     });
   }
 
-  async readParagraphs(start: number, end: number): Promise<ParagraphResult> {
+  async readParagraphs(
+    start: number,
+    end: number,
+    includeFormatting = false,
+  ): Promise<
+    ParagraphResult & {
+      details?: Array<{
+        index: number;
+        text: string;
+        style: string;
+        alignment: string;
+        spaceBefore: number;
+        spaceAfter: number;
+        lineSpacing: number;
+        font: {
+          name: string;
+          size: number;
+          bold: boolean;
+          italic: boolean;
+          color: string;
+        };
+      }>;
+    }
+  > {
     if (!Number.isInteger(start) || start < 1 || !Number.isInteger(end) || end < start) {
       throw new Error("start and end must be positive paragraph indexes");
     }
@@ -757,13 +780,54 @@ export class OfficeJsWordAdapter {
         throw new Error(`paragraph ${start} is out of range (total ${paragraphs.items.length})`);
       }
       const selected = paragraphs.items.slice(start - 1, boundedEnd);
-      selected.forEach((paragraph) => paragraph.load("text"));
+      if (includeFormatting) {
+        selected.forEach((paragraph) => {
+          paragraph.load([
+            "text",
+            "style",
+            "alignment",
+            "spaceBefore",
+            "spaceAfter",
+            "lineSpacing",
+            "font/name",
+            "font/size",
+            "font/bold",
+            "font/italic",
+            "font/color",
+          ]);
+        });
+      } else {
+        selected.forEach((paragraph) => paragraph.load("text"));
+      }
       await context.sync();
+      const texts = selected.map((paragraph) => paragraph.text.replace(/[\r\x07]+$/g, ""));
+      if (!includeFormatting) {
+        return {
+          start,
+          end: boundedEnd,
+          paragraphs: texts,
+        };
+      }
       return {
         start,
         end: boundedEnd,
-        paragraphs: selected
-          .map((paragraph) => paragraph.text.replace(/[\r\x07]+$/g, "")),
+        paragraphs: texts,
+        details: selected.map((paragraph, offset) => ({
+          index: start + offset,
+          text: texts[offset],
+          style: paragraph.style,
+          alignment: String(paragraph.alignment),
+          spaceBefore: paragraph.spaceBefore,
+          spaceAfter: paragraph.spaceAfter,
+          lineSpacing: paragraph.lineSpacing,
+          font: {
+            name: paragraph.font.name,
+            size: paragraph.font.size,
+            bold: paragraph.font.bold,
+            italic: paragraph.font.italic,
+            color: paragraph.font.color,
+          },
+        })),
       };
     });
   }

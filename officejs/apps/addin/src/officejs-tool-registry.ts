@@ -60,13 +60,14 @@ const descriptors: OfficeToolDescriptor[] = [
   },
   {
     name: "read_paragraphs",
-    description: "Read a range of Word paragraphs by 1-based inclusive start and end indices.",
+    description: "Read a range of Word paragraphs by 1-based inclusive start and end indices. Set include_formatting=true to also inspect each paragraph's style, alignment, spacing, and font.",
     isWriteOperation: false,
     parameterSchema: {
       type: "object",
       properties: {
         start: { type: "integer", minimum: 1, description: "1-based starting paragraph index." },
         end: { type: "integer", minimum: 1, description: "1-based ending paragraph index." },
+        include_formatting: { type: "boolean", description: "Include style, alignment, spacing, and font metadata per paragraph (default false)." },
       },
       required: ["start", "end"],
     },
@@ -646,7 +647,11 @@ export class OfficeJsToolRegistry {
         await this.word.insertTextAtEnd(this.requireString(args, "text"));
         return { inserted: true };
       case "read_paragraphs":
-        return this.word.readParagraphs(this.requireInt(args, "start"), this.requireInt(args, "end"));
+        return this.word.readParagraphs(
+          this.requireInt(args, "start"),
+          this.requireInt(args, "end"),
+          this.optionalBoolean(args, "include_formatting") ?? false,
+        );
       case "read_large_chunk":
         return this.word.readLargeChunk(this.requireInt(args, "start_paragraph"));
       case "build_semantic_map":
