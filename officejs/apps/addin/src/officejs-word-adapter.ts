@@ -2319,15 +2319,64 @@ export class OfficeJsWordAdapter {
     });
   }
 
+  private static readonly fieldPlaceholderMap: Record<string, Word.FieldType> = {
+    page: "Page" as Word.FieldType,
+    numpages: "NumPages" as Word.FieldType,
+    date: "Date" as Word.FieldType,
+    time: "Time" as Word.FieldType,
+    title: "Title" as Word.FieldType,
+    filename: "FileName" as Word.FieldType,
+    author: "Author" as Word.FieldType,
+  };
+
+  private static readonly headerFooterTemplates: Record<string, string> = {
+    page_x_of_y: "{page} / {numPages}",
+    page_number: "{page}",
+    title_and_page: "{title}  |  {page} / {numPages}",
+    date_and_page: "{date}  |  {page} / {numPages}",
+  };
+
   async headerFooter(
     element: string,
     text: string,
-    options: { sectionIndex?: number; kind?: string; alignment?: string } = {},
+    options: {
+      sectionIndex?: number;
+      kind?: string;
+      alignment?: string;
+      mode?: string;
+      template?: string;
+      fontName?: string;
+      fontSize?: number;
+      bold?: boolean;
+      italic?: boolean;
+      color?: string;
+    } = {},
   ): Promise<void> {
     const target = element.toLowerCase();
     if (!["header", "footer", "page_number"].includes(target)) {
       throw new Error("element must be header, footer, or page_number");
     }
+    const mode = (options.mode ?? "replace").toLowerCase();
+    if (!["replace", "append", "clear"].includes(mode)) {
+      throw new Error("mode must be replace, append, or clear");
+    }
+
+    const templateText = options.template
+      ? OfficeJsWordAdapter.headerFooterTemplates[options.template.toLowerCase()]
+      : undefined;
+    if (options.template && !templateText) {
+      throw new Error(`Unknown header_footer template: ${options.template}`);
+    }
+
+    const effectiveText = mode === "clear"
+      ? ""
+      : templateText ?? (text || (target === "page_number" ? "{page} / {numPages}" : ""));
+
+    const hasFieldTokens = /\{(page|numpages|date|time|title|filename|author)\}/i.test(effectiveText);
+    if (hasFieldTokens && !Office.context?.requirements?.isSetSupported?.("WordApi", "1.5")) {
+      throw new Error(i18n.t("taskpane.wordAdapter.errors.pageNumberUnsupported"));
+    }
+
     await Word.run(async (context) => {
       const sections = context.document.sections;
       sections.load("items");
@@ -2343,24 +2392,51 @@ export class OfficeJsWordAdapter {
       const body = target === "header"
         ? section.getHeader(kind)
         : section.getFooter(kind);
-      body.clear();
-      if (target === "page_number") {
-        if (!Office.context?.requirements?.isSetSupported?.("WordApi", "1.5")) {
-          throw new Error(i18n.t("taskpane.wordAdapter.errors.pageNumberUnsupported"));
-        }
-        const range = body.getRange(Word.RangeLocation.start);
-        range.insertField(Word.InsertLocation.start, Word.FieldType.page);
-        range.insertText(" / ", Word.InsertLocation.end);
-        range.insertField(Word.InsertLocation.end, Word.FieldType.numPages);
-      } else {
-        body.insertText(text, Word.InsertLocation.start);
+
+      if (mode === "replace" || mode === "clear") {
+        body.clear();
       }
-      if (options.alignment) {
+
+      if (mode !== "clear" && effectiveText.length > 0) {
+        const anchorRange = mode === "append"
+          ? body.insertParagraph("", Word.InsertLocation.end).getRange(Word.RangeLocation.start)
+          : body.getRange(Word.RangeLocation.start);
+
+        if (hasFieldTokens) {
+          const tokens = effectiveText.split(/(\{(?:page|numpages|date|time|title|filename|author)\})/gi);
+          for (const token of tokens) {
+            if (!token) continue;
+            const match = /^\{(page|numpages|date|time|title|filename|author)\}$/i.exec(token);
+            if (match) {
+              const fieldType = OfficeJsWordAdapter.fieldPlaceholderMap[match[1].toLowerCase()];
+              anchorRange.insertField(Word.InsertLocation.end, fieldType);
+            } else {
+              anchorRange.insertText(token, Word.InsertLocation.end);
+            }
+          }
+        } else {
+          anchorRange.insertText(effectiveText, Word.InsertLocation.end);
+        }
+      }
+
+      const needsParagraphFormatting =
+        Boolean(options.alignment) ||
+        Boolean(options.fontName) ||
+        typeof options.fontSize === "number" ||
+        typeof options.bold === "boolean" ||
+        typeof options.italic === "boolean" ||
+        Boolean(options.color);
+      if (needsParagraphFormatting) {
         const paragraphs = body.paragraphs;
         paragraphs.load("items");
         await context.sync();
         paragraphs.items.forEach((paragraph) => {
-          paragraph.alignment = options.alignment as Word.Alignment;
+          if (options.alignment) paragraph.alignment = options.alignment as Word.Alignment;
+          if (options.fontName) paragraph.font.name = options.fontName;
+          if (typeof options.fontSize === "number") paragraph.font.size = options.fontSize;
+          if (typeof options.bold === "boolean") paragraph.font.bold = options.bold;
+          if (typeof options.italic === "boolean") paragraph.font.italic = options.italic;
+          if (options.color) paragraph.font.color = options.color;
         });
       }
       await context.sync();
