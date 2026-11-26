@@ -117,6 +117,22 @@ const descriptors: OfficeToolDescriptor[] = [
     },
   },
   {
+    name: "delete_paragraph",
+    description: "delete_paragraph",
+    isWriteOperation: true,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        paragraph_index: {
+          type: "integer",
+          minimum: 1,
+          description: "1-based index of the paragraph to delete.",
+        },
+      },
+      required: ["paragraph_index"],
+    },
+  },
+  {
     name: "insert_at_cursor",
     description: "insert_at_cursor",
     isWriteOperation: true,
@@ -569,6 +585,9 @@ export class OfficeJsToolRegistry {
       case "replace_paragraph":
         await this.word.replaceParagraph(this.requireInt(args, "paragraph_index"), this.requireString(args, "new_text", true));
         return { replaced: true };
+      case "delete_paragraph":
+        await this.word.deleteParagraph(this.requireInt(args, "paragraph_index"));
+        return { deleted: true };
       case "insert_at_cursor":
         await this.word.insertAtCursor(this.requireString(args, "text"), this.requireSelectionHash(args));
         return { inserted: true };

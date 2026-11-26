@@ -1153,6 +1153,13 @@ export class OfficeJsWordAdapter {
     });
   }
 
+  async deleteParagraph(paragraphIndex: number): Promise<void> {
+    if (!Number.isInteger(paragraphIndex) || paragraphIndex < 1) {
+      throw new Error("paragraph_index must be a positive integer");
+    }
+    await this.replaceParagraph(paragraphIndex, "");
+  }
+
   async insertAtCursor(text: string, expectedSelectionHash?: string): Promise<void> {
     if (!text) {
       throw new Error("text is required");
