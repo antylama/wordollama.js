@@ -1172,6 +1172,23 @@ export class OfficeJsWordAdapter {
     });
   }
 
+  async insertHyperlink(text: string, url: string, expectedSelectionHash?: string): Promise<void> {
+    if (!text.trim() || !url.trim()) {
+      throw new Error("text and url are required");
+    }
+    const parsed = new URL(url.trim());
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:" && parsed.protocol !== "mailto:") {
+      throw new Error("url must use http:, https:, or mailto:");
+    }
+    await Word.run(async (context) => {
+      const selection = context.document.getSelection();
+      if (expectedSelectionHash) await this.assertExpectedSelection(context, selection, expectedSelectionHash);
+      const inserted = selection.insertText(text, Word.InsertLocation.replace);
+      inserted.hyperlink = parsed.href;
+      await context.sync();
+    });
+  }
+
   async readComments(): Promise<Array<{ author: string; content: string; resolved: boolean }>> {
     return Word.run(async (context) => {
       // Body.getComments() belongs to the cross-platform WordApi 1.4 set.

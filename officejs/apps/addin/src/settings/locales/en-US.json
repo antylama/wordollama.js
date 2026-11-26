@@ -1266,7 +1266,8 @@
       "replace_exact_text": "Replace exact document text using the legacy-compatible tool name.",
       "apply_precise_revision": "Apply only the changed hunks to the current selection as tracked Word revisions; fails safely if the selection changed.",
       "ask_human": "Ask the Word user a question and wait for confirmation or input. Always provide 1 to 3 concise options when possible so the user can answer with one click.",
-      "delete_paragraph": "Delete a paragraph by its 1-based paragraph_index."
+      "delete_paragraph": "Delete a paragraph by its 1-based paragraph_index.",
+      "insert_hyperlink": "Insert a clickable hyperlink at the cursor or over the current selection."
     },
     "settings": {
       "openFailed": "Unable to open Settings."

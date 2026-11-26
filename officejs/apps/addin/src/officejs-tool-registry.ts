@@ -143,6 +143,20 @@ const descriptors: OfficeToolDescriptor[] = [
     },
   },
   {
+    name: "insert_hyperlink",
+    description: "insert_hyperlink",
+    isWriteOperation: true,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        text: { type: "string", description: "Visible link text to insert at the cursor or replace selection." },
+        url: { type: "string", description: "Target URL (http:, https:, or mailto:)." },
+        expected_selection_hash: expectedSelectionHashSchema,
+      },
+      required: ["text", "url", "expected_selection_hash"],
+    },
+  },
+  {
     name: "add_comment",
     description: "add_comment",
     isWriteOperation: true,
@@ -590,6 +604,13 @@ export class OfficeJsToolRegistry {
         return { deleted: true };
       case "insert_at_cursor":
         await this.word.insertAtCursor(this.requireString(args, "text"), this.requireSelectionHash(args));
+        return { inserted: true };
+      case "insert_hyperlink":
+        await this.word.insertHyperlink(
+          this.requireString(args, "text"),
+          this.requireString(args, "url"),
+          this.requireSelectionHash(args),
+        );
         return { inserted: true };
       case "add_comment":
         await this.word.addComment(this.requireString(args, "text"), this.requireSelectionHash(args));

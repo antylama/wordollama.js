@@ -1266,7 +1266,8 @@
       "replace_exact_text": "Replace exact document text using the legacy-compatible tool name.",
       "apply_precise_revision": "Apply only the changed hunks to the current selection as tracked Word revisions; fails safely if the selection changed.",
       "ask_human": "Zadaj użytkownikowi Worda pytanie i poczekaj na wybór lub odpowiedź. Zawsze podaj 1–3 zwięzłe opcje wyboru w parametrze options, aby użytkownik mógł odpowiedzieć jednym kliknięciem.",
-      "delete_paragraph": "Usuń akapit o wskazanym indeksie paragraph_index (liczonym od 1)."
+      "delete_paragraph": "Usuń akapit o wskazanym indeksie paragraph_index (liczonym od 1).",
+      "insert_hyperlink": "Wstaw klikalny hiperlink w miejscu kursora lub zamiast zaznaczenia."
     },
     "settings": {
       "openFailed": "Unable to open Settings."
