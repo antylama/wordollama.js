@@ -489,8 +489,19 @@ public sealed class AgentSession
                     results.Add((call, result));
                 }
 
+                var pendingPreviewImages = new List<(string ToolName, string Summary, string ImageDataUrl)>();
                 foreach (var (call, result) in results)
                 {
+                    if (!result.IsError && TryExtractImageToolResult(result.Content, out var summary, out var imageDataUrl))
+                    {
+                        _messages.Add(new ChatMessage(
+                            "tool",
+                            summary,
+                            ToolCallId: call.Id,
+                            Name: call.Name));
+                        pendingPreviewImages.Add((call.Name, summary, imageDataUrl));
+                        continue;
+                    }
                     var content = result.IsError
                         ? JsonSerializer.Serialize(new { error = result.Content })
                         : result.Content;
@@ -500,6 +511,13 @@ public sealed class AgentSession
                         ToolCallId: call.Id,
                         Name: call.Name));
                     if (!result.IsError) PublishSources(call.Name, result.Content);
+                }
+                foreach (var preview in pendingPreviewImages)
+                {
+                    _messages.Add(new ChatMessage(
+                        "user",
+                        $"[Visual preview from {preview.ToolName}: {preview.Summary}]",
+                        ImageDataUrl: preview.ImageDataUrl));
                 }
             }
 
@@ -523,6 +541,46 @@ public sealed class AgentSession
         {
             Publish(new RuntimeEvent("failed", Message: exception.Message));
             Complete(deleteRecovery: false);
+        }
+    }
+
+    private static bool TryExtractImageToolResult(
+        string rawContent,
+        out string summary,
+        out string imageDataUrl)
+    {
+        summary = string.Empty;
+        imageDataUrl = string.Empty;
+        if (string.IsNullOrWhiteSpace(rawContent) || !rawContent.TrimStart().StartsWith('{'))
+        {
+            return false;
+        }
+        try
+        {
+            using var doc = JsonDocument.Parse(rawContent);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("__wordollamaImage", out var flag) ||
+                flag.ValueKind != JsonValueKind.True ||
+                !root.TryGetProperty("base64", out var base64Prop) ||
+                base64Prop.ValueKind != JsonValueKind.String)
+            {
+                return false;
+            }
+            var base64 = base64Prop.GetString();
+            if (string.IsNullOrWhiteSpace(base64)) return false;
+            var mimeType = root.TryGetProperty("mimeType", out var mimeProp) && mimeProp.ValueKind == JsonValueKind.String
+                ? mimeProp.GetString() ?? "image/png"
+                : "image/png";
+            summary = root.TryGetProperty("summary", out var summaryProp) && summaryProp.ValueKind == JsonValueKind.String
+                ? summaryProp.GetString() ?? "Rendered visual preview."
+                : "Rendered visual preview.";
+            imageDataUrl = $"data:{mimeType};base64,{base64}";
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
         }
     }
 

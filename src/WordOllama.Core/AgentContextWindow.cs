@@ -43,7 +43,17 @@ internal static class AgentContextWindow
             if (summary.Length > budget / 5) break;
         }
         result.Add(new ChatMessage("system", summary.ToString()));
-        result.AddRange(messages.Skip(start).Select(BoundToolResult));
+        var tail = messages.Skip(start).ToArray();
+        for (var i = 0; i < tail.Length; i++)
+        {
+            var item = BoundToolResult(tail[i]);
+            // Keep at most the latest 2 visual tool/user images in compacted tail.
+            if (i < tail.Length - 2 && !string.IsNullOrWhiteSpace(item.ImageDataUrl))
+            {
+                item = item with { ImageDataUrl = null };
+            }
+            result.Add(item);
+        }
         estimatedTokens = Math.Max(1, result.Sum(message => message.Content?.Length ?? 0) / 4);
         return result;
     }
