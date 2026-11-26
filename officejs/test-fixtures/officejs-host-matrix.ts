@@ -52,7 +52,7 @@ const profiles: HostProfile[] = [
   {
     name: "Microsoft 365 desktop",
     supported: { WordApi: "1.5", WordApiDesktop: "1.4" },
-    expectedCount: 47,
+    expectedCount: 48,
     unavailable: [],
   },
 ];

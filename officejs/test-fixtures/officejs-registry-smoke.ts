@@ -42,8 +42,8 @@ const expected = [
 for (const name of expected) {
   if (!names.includes(name)) throw new Error(`missing Office.js tool: ${name}`);
 }
-if (names.length !== 48) {
-  throw new Error(`expected 48 Office.js descriptors, got ${names.length}`);
+if (names.length !== 49) {
+  throw new Error(`expected 49 Office.js descriptors, got ${names.length}`);
 }
 for (const name of [
   "insert_at_cursor",
@@ -106,6 +106,7 @@ const dispatchArguments: Record<string, AnyRecord> = {
   replace_paragraph: { paragraph_index: 1, new_text: "text" },
   delete_paragraph: { paragraph_index: 1 },
   insert_at_cursor: { text: "text", expected_selection_hash: selectionHash },
+  insert_field: { field_type: "Page", expected_selection_hash: selectionHash },
   insert_hyperlink: { text: "link", url: "https://example.com", expected_selection_hash: selectionHash },
   add_comment: { text: "comment", expected_selection_hash: selectionHash },
   find_replace: { find: "old", replace: "new" },

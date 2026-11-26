@@ -288,7 +288,8 @@ export class OfficeJsWordAdapter {
       name === "list_styles" ||
       name === "edit_style" ||
       name === "read_footnotes" ||
-      name === "insert_footnote"
+      name === "insert_footnote" ||
+      name === "insert_field"
     ) {
       return requirements.isSetSupported("WordApi", "1.5");
     }
@@ -1278,6 +1279,21 @@ export class OfficeJsWordAdapter {
       throw new Error("paragraph_index must be a positive integer");
     }
     await this.replaceParagraph(paragraphIndex, "");
+  }
+
+  async insertField(fieldType: string, expectedSelectionHash?: string): Promise<{ inserted: boolean; fieldType: string }> {
+    const allowed = ["Page", "NumPages", "Date", "Time", "FileName", "Title", "Author", "CreateDate", "SaveDate"];
+    const matched = allowed.find((candidate) => candidate.toLowerCase() === fieldType.trim().toLowerCase());
+    if (!matched) {
+      throw new Error(`Unsupported field_type '${fieldType}'. Expected one of: ${allowed.join(", ")}.`);
+    }
+    return Word.run(async (context) => {
+      const selection = context.document.getSelection();
+      if (expectedSelectionHash) await this.assertExpectedSelection(context, selection, expectedSelectionHash);
+      selection.insertField(Word.InsertLocation.replace, matched as Word.FieldType);
+      await context.sync();
+      return { inserted: true, fieldType: matched };
+    });
   }
 
   async insertAtCursor(text: string, expectedSelectionHash?: string): Promise<void> {

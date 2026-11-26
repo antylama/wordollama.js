@@ -145,6 +145,23 @@ const descriptors: OfficeToolDescriptor[] = [
     },
   },
   {
+    name: "insert_field",
+    description: "Insert a dynamic Word field (Page, NumPages, Date, Time, FileName, Title, Author, CreateDate, SaveDate) at the current cursor or selection.",
+    isWriteOperation: true,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        field_type: {
+          type: "string",
+          enum: ["Page", "NumPages", "Date", "Time", "FileName", "Title", "Author", "CreateDate", "SaveDate"],
+          description: "Dynamic Word field type to insert.",
+        },
+        expected_selection_hash: expectedSelectionHashSchema,
+      },
+      required: ["field_type", "expected_selection_hash"],
+    },
+  },
+  {
     name: "insert_at_cursor",
     description: "Insert text at the current Word cursor or selection.",
     isWriteOperation: true,
@@ -680,6 +697,11 @@ export class OfficeJsToolRegistry {
       case "delete_paragraph":
         await this.word.deleteParagraph(this.requireInt(args, "paragraph_index"));
         return { deleted: true };
+      case "insert_field":
+        return this.word.insertField(
+          this.requireString(args, "field_type"),
+          this.requireSelectionHash(args),
+        );
       case "insert_at_cursor":
         await this.word.insertAtCursor(this.requireString(args, "text"), this.requireSelectionHash(args));
         return { inserted: true };
