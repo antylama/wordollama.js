@@ -2144,9 +2144,22 @@ app.MapGet("/agent/sessions/{id}/events", async (
 
     httpContext.Response.ContentType = "application/x-ndjson";
     httpContext.Response.Headers.CacheControl = "no-cache";
+    httpContext.Response.Headers["X-Accel-Buffering"] = "no";
+    await httpContext.Response.StartAsync(cancellationToken);
     var memoryObserved = false;
-    await foreach (var runtimeEvent in session.ReadEventsAsync(cancellationToken))
+    await using var enumerator = session.ReadEventsAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
+    while (true)
     {
+        var moveNextTask = enumerator.MoveNextAsync().AsTask();
+        while (!moveNextTask.IsCompleted)
+        {
+            var completed = await Task.WhenAny(moveNextTask, Task.Delay(TimeSpan.FromSeconds(15), cancellationToken));
+            if (completed == moveNextTask) break;
+            await httpContext.Response.WriteAsync("\n", cancellationToken);
+            await httpContext.Response.Body.FlushAsync(cancellationToken);
+        }
+        if (!await moveNextTask) break;
+        var runtimeEvent = enumerator.Current;
         if (!memoryObserved && string.Equals(runtimeEvent.Type, "completed", StringComparison.OrdinalIgnoreCase))
         {
             automaticMemory.ObserveUserText(session.UserRequirement);
