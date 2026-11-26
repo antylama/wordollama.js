@@ -85,6 +85,64 @@ public static class WordMcpEndpoint
             CryptographicOperations.FixedTimeEquals(expectedBytes, suppliedBytes);
     }
 
+    private sealed class FailedAuthTracker
+    {
+        private const int MaxFailuresPerWindow = 15;
+        private static readonly TimeSpan Window = TimeSpan.FromSeconds(60);
+        private readonly object _gate = new();
+        private readonly Dictionary<string, Queue<DateTimeOffset>> _failures = new(StringComparer.Ordinal);
+
+        public bool IsRateLimited(string key, DateTimeOffset now, out int retryAfterSeconds)
+        {
+            lock (_gate)
+            {
+                if (_failures.TryGetValue(key, out var queue))
+                {
+                    Prune(queue, now);
+                    if (queue.Count >= MaxFailuresPerWindow)
+                    {
+                        var oldest = queue.Peek();
+                        retryAfterSeconds = Math.Max(1, (int)Math.Ceiling((oldest + Window - now).TotalSeconds));
+                        return true;
+                    }
+                    if (queue.Count == 0) _failures.Remove(key);
+                }
+                retryAfterSeconds = 0;
+                return false;
+            }
+        }
+
+        public void RecordFailure(string key, DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                if (_failures.Count > 4096) _failures.Clear();
+                if (!_failures.TryGetValue(key, out var queue))
+                {
+                    queue = new Queue<DateTimeOffset>();
+                    _failures[key] = queue;
+                }
+                Prune(queue, now);
+                queue.Enqueue(now);
+            }
+        }
+
+        public void Clear(string key)
+        {
+            lock (_gate) _failures.Remove(key);
+        }
+
+        private static void Prune(Queue<DateTimeOffset> queue, DateTimeOffset now)
+        {
+            while (queue.Count > 0 && now - queue.Peek() >= Window)
+            {
+                queue.Dequeue();
+            }
+        }
+    }
+
+    private static readonly FailedAuthTracker AuthTracker = new();
+
     public static async Task<IResult> HandleAsync(
         HttpRequest request,
         OfficeToolBroker broker,
@@ -93,7 +151,21 @@ public static class WordMcpEndpoint
         string? token = null)
     {
         if (!options.Enabled) return Results.NotFound();
-        if (!IsAuthorized(request, options, token)) return Results.Unauthorized();
+
+        var clientKey = request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var now = DateTimeOffset.UtcNow;
+        if (AuthTracker.IsRateLimited(clientKey, now, out var retryAfterSeconds))
+        {
+            request.HttpContext.Response.Headers.RetryAfter = retryAfterSeconds.ToString();
+            return Results.StatusCode(StatusCodes.Status429TooManyRequests);
+        }
+
+        if (!IsAuthorized(request, options, token))
+        {
+            AuthTracker.RecordFailure(clientKey, now);
+            return Results.Unauthorized();
+        }
+        AuthTracker.Clear(clientKey);
 
         JsonDocument document;
         try
