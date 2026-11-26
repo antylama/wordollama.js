@@ -9,6 +9,7 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="WordOllama.JS" />
   <Description DefaultValue="WordOllama.JS unified add-in for Word on Windows and Mac">
+    <Override Locale="pl-PL" Value="Dodatek WordOllama.JS dla programu Word w systemach Windows i Mac" />
     <Override Locale="zh-CN" Value="适用于 Windows 和 Mac Word 的 WordOllama.JS 统一加载项" />
   </Description>
   <IconUrl DefaultValue="https://localhost:3000/assets/ribbon/agent-32.png?v=mono-3" />
@@ -78,186 +79,18 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Writing.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/writing-16.png?v=mono-3" />
-        <bt:Image id="Writing.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/writing-32.png?v=mono-3" />
-        <bt:Image id="Writing.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/writing-80.png?v=mono-3" />
-        <bt:Image id="Image.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/image-16.png?v=mono-3" />
-        <bt:Image id="Image.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/image-32.png?v=mono-3" />
-        <bt:Image id="Image.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/image-80.png?v=mono-3" />
-        <bt:Image id="Table.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/table-16.png?v=mono-3" />
-        <bt:Image id="Table.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/table-32.png?v=mono-3" />
-        <bt:Image id="Table.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/table-80.png?v=mono-3" />
-        <bt:Image id="Html.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/html-16.png?v=mono-3" />
-        <bt:Image id="Html.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/html-32.png?v=mono-3" />
-        <bt:Image id="Html.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/html-80.png?v=mono-3" />
-        <bt:Image id="Markdown.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/markdown-16.png?v=mono-3" />
-        <bt:Image id="Markdown.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/markdown-32.png?v=mono-3" />
-        <bt:Image id="Markdown.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/markdown-80.png?v=mono-3" />
         <bt:Image id="Agent.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/agent-16.png?v=mono-3" />
         <bt:Image id="Agent.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/agent-32.png?v=mono-3" />
         <bt:Image id="Agent.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/agent-80.png?v=mono-3" />
-        <bt:Image id="CustomPrompts.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/custom-prompts-16.png?v=mono-3" />
-        <bt:Image id="CustomPrompts.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/custom-prompts-32.png?v=mono-3" />
-        <bt:Image id="CustomPrompts.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/custom-prompts-80.png?v=mono-3" />
-        <bt:Image id="Polish.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/polish-16.png?v=mono-3" />
-        <bt:Image id="Polish.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/polish-32.png?v=mono-3" />
-        <bt:Image id="Polish.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/polish-80.png?v=mono-3" />
-        <bt:Image id="Expand.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/expand-16.png?v=mono-3" />
-        <bt:Image id="Expand.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/expand-32.png?v=mono-3" />
-        <bt:Image id="Expand.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/expand-80.png?v=mono-3" />
-        <bt:Image id="Simplify.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/simplify-16.png?v=mono-3" />
-        <bt:Image id="Simplify.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/simplify-32.png?v=mono-3" />
-        <bt:Image id="Simplify.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/simplify-80.png?v=mono-3" />
-        <bt:Image id="Modify.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/modify-16.png?v=mono-3" />
-        <bt:Image id="Modify.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/modify-32.png?v=mono-3" />
-        <bt:Image id="Modify.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/modify-80.png?v=mono-3" />
-        <bt:Image id="Continue.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/continue-16.png?v=mono-3" />
-        <bt:Image id="Continue.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/continue-32.png?v=mono-3" />
-        <bt:Image id="Continue.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/continue-80.png?v=mono-3" />
-        <bt:Image id="Summarize.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/summarize-16.png?v=mono-3" />
-        <bt:Image id="Summarize.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/summarize-32.png?v=mono-3" />
-        <bt:Image id="Summarize.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/summarize-80.png?v=mono-3" />
-        <bt:Image id="Fix.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/fix-16.png?v=mono-3" />
-        <bt:Image id="Fix.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/fix-32.png?v=mono-3" />
-        <bt:Image id="Fix.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/fix-80.png?v=mono-3" />
-        <bt:Image id="Translate.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/translate-16.png?v=mono-3" />
-        <bt:Image id="Translate.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/translate-32.png?v=mono-3" />
-        <bt:Image id="Translate.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/translate-80.png?v=mono-3" />
-        <bt:Image id="Risk.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/risk-16.png?v=mono-3" />
-        <bt:Image id="Risk.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/risk-32.png?v=mono-3" />
-        <bt:Image id="Risk.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/risk-80.png?v=mono-3" />
-        <bt:Image id="Fairness.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/fairness-16.png?v=mono-3" />
-        <bt:Image id="Fairness.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/fairness-32.png?v=mono-3" />
-        <bt:Image id="Fairness.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/fairness-80.png?v=mono-3" />
-        <bt:Image id="MootCourt.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/moot-court-16.png?v=mono-3" />
-        <bt:Image id="MootCourt.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/moot-court-32.png?v=mono-3" />
-        <bt:Image id="MootCourt.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/moot-court-80.png?v=mono-3" />
-        <bt:Image id="ContractCompare.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/contract-compare-16.png?v=mono-3" />
-        <bt:Image id="ContractCompare.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/contract-compare-32.png?v=mono-3" />
-        <bt:Image id="ContractCompare.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/contract-compare-80.png?v=mono-3" />
-        <bt:Image id="Compare.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/compare-16.png?v=mono-3" />
-        <bt:Image id="Compare.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/compare-32.png?v=mono-3" />
-        <bt:Image id="Compare.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/compare-80.png?v=mono-3" />
-        <bt:Image id="LawSearch.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/law-search-16.png?v=mono-3" />
-        <bt:Image id="LawSearch.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/law-search-32.png?v=mono-3" />
-        <bt:Image id="LawSearch.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/law-search-80.png?v=mono-3" />
-        <bt:Image id="Review.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/review-16.png?v=mono-3" />
-        <bt:Image id="Review.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/review-32.png?v=mono-3" />
-        <bt:Image id="Review.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/review-80.png?v=mono-3" />
-        <bt:Image id="Settings.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-16.png?v=mono-3" />
-        <bt:Image id="Settings.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-32.png?v=mono-3" />
-        <bt:Image id="Settings.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-80.png?v=mono-3" />
-        <bt:Image id="CreateGroup.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/create-group-16.png?v=mono-3" />
-        <bt:Image id="CreateGroup.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/create-group-32.png?v=mono-3" />
-        <bt:Image id="CreateGroup.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/create-group-80.png?v=mono-3" />
-        <bt:Image id="EditGroup.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/edit-group-16.png?v=mono-3" />
-        <bt:Image id="EditGroup.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/edit-group-32.png?v=mono-3" />
-        <bt:Image id="EditGroup.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/edit-group-80.png?v=mono-3" />
-        <bt:Image id="EditMoreGroup.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/edit-more-group-16.png?v=mono-3" />
-        <bt:Image id="EditMoreGroup.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/edit-more-group-32.png?v=mono-3" />
-        <bt:Image id="EditMoreGroup.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/edit-more-group-80.png?v=mono-3" />
-        <bt:Image id="TranslateGroup.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/translate-group-16.png?v=mono-3" />
-        <bt:Image id="TranslateGroup.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/translate-group-32.png?v=mono-3" />
-        <bt:Image id="TranslateGroup.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/translate-group-80.png?v=mono-3" />
-        <bt:Image id="LegalGroup.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/legal-group-16.png?v=mono-3" />
-        <bt:Image id="LegalGroup.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/legal-group-32.png?v=mono-3" />
-        <bt:Image id="LegalGroup.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/legal-group-80.png?v=mono-3" />
-        <bt:Image id="SettingsGroup.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-group-16.png?v=mono-3" />
-        <bt:Image id="SettingsGroup.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-group-32.png?v=mono-3" />
-        <bt:Image id="SettingsGroup.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-group-80.png?v=mono-3" />
-        <bt:Image id="NavGeneral.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-general-16.png?v=mono-3" />
-        <bt:Image id="NavGeneral.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-general-32.png?v=mono-3" />
-        <bt:Image id="NavGeneral.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-general-80.png?v=mono-3" />
-        <bt:Image id="NavModels.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-models-16.png?v=mono-3" />
-        <bt:Image id="NavModels.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-models-32.png?v=mono-3" />
-        <bt:Image id="NavModels.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-models-80.png?v=mono-3" />
-        <bt:Image id="NavAgent.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-agent-16.png?v=mono-3" />
-        <bt:Image id="NavAgent.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-agent-32.png?v=mono-3" />
-        <bt:Image id="NavAgent.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-agent-80.png?v=mono-3" />
-        <bt:Image id="NavMarkdown.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-markdown-16.png?v=mono-3" />
-        <bt:Image id="NavMarkdown.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-markdown-32.png?v=mono-3" />
-        <bt:Image id="NavMarkdown.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-markdown-80.png?v=mono-3" />
-        <bt:Image id="NavSkills.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-skills-16.png?v=mono-3" />
-        <bt:Image id="NavSkills.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-skills-32.png?v=mono-3" />
-        <bt:Image id="NavSkills.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-skills-80.png?v=mono-3" />
-        <bt:Image id="NavMcp.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-mcp-16.png?v=mono-3" />
-        <bt:Image id="NavMcp.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-mcp-32.png?v=mono-3" />
-        <bt:Image id="NavMcp.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-mcp-80.png?v=mono-3" />
-        <bt:Image id="NavAdvanced.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-advanced-16.png?v=mono-3" />
-        <bt:Image id="NavAdvanced.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-advanced-32.png?v=mono-3" />
-        <bt:Image id="NavAdvanced.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-advanced-80.png?v=mono-3" />
-        <bt:Image id="NavUpdates.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-updates-16.png?v=mono-3" />
-        <bt:Image id="NavUpdates.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-updates-32.png?v=mono-3" />
-        <bt:Image id="NavUpdates.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-updates-80.png?v=mono-3" />
-        <bt:Image id="NavAbout.Icon16" DefaultValue="https://localhost:3000/assets/ribbon/settings-about-16.png?v=mono-3" />
-        <bt:Image id="NavAbout.Icon32" DefaultValue="https://localhost:3000/assets/ribbon/settings-about-32.png?v=mono-3" />
-        <bt:Image id="NavAbout.Icon80" DefaultValue="https://localhost:3000/assets/ribbon/settings-about-80.png?v=mono-3" />
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Commands.Url" DefaultValue="https://localhost:3000/commands.html" />
         <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/index.html" />
-        <bt:Url id="Writing.Url" DefaultValue="https://localhost:3000/index.html?surface=create&amp;workflow=writing" />
-        <bt:Url id="Modify.Url" DefaultValue="https://localhost:3000/index.html?surface=create&amp;workflow=modify" />
-        <bt:Url id="Image.Url" DefaultValue="https://localhost:3000/index.html?surface=create&amp;workflow=image" />
-        <bt:Url id="Table.Url" DefaultValue="https://localhost:3000/index.html?surface=create&amp;workflow=table" />
-        <bt:Url id="Html.Url" DefaultValue="https://localhost:3000/index.html?surface=create&amp;workflow=html" />
-        <bt:Url id="Markdown.Url" DefaultValue="https://localhost:3000/index.html?surface=create&amp;workflow=markdown" />
-        <bt:Url id="Agent.Url" DefaultValue="https://localhost:3000/index.html?surface=agent&amp;workflow=agent" />
-        <bt:Url id="Polish.Url" DefaultValue="https://localhost:3000/index.html?surface=edit&amp;workflow=polish" />
-        <bt:Url id="Expand.Url" DefaultValue="https://localhost:3000/index.html?surface=edit&amp;workflow=expand" />
-        <bt:Url id="Simplify.Url" DefaultValue="https://localhost:3000/index.html?surface=edit&amp;workflow=simplify" />
-        <bt:Url id="Continue.Url" DefaultValue="https://localhost:3000/index.html?surface=edit&amp;workflow=continue" />
-        <bt:Url id="Summarize.Url" DefaultValue="https://localhost:3000/index.html?surface=edit&amp;workflow=summarize" />
-        <bt:Url id="Fix.Url" DefaultValue="https://localhost:3000/index.html?surface=edit&amp;workflow=fix" />
-        <bt:Url id="Compare.Url" DefaultValue="https://localhost:3000/index.html?surface=compare&amp;workflow=compare" />
-        <bt:Url id="Translate.Url" DefaultValue="https://localhost:3000/index.html?surface=edit&amp;workflow=translate" />
-        <bt:Url id="Risk.Url" DefaultValue="https://localhost:3000/index.html?surface=legal&amp;workflow=risk" />
-        <bt:Url id="Fairness.Url" DefaultValue="https://localhost:3000/index.html?surface=legal&amp;workflow=fairness" />
-        <bt:Url id="MootCourt.Url" DefaultValue="https://localhost:3000/index.html?surface=legal&amp;workflow=moot-court" />
-        <bt:Url id="ContractCompare.Url" DefaultValue="https://localhost:3000/index.html?surface=compare&amp;workflow=contract-compare" />
-        <bt:Url id="LawSearch.Url" DefaultValue="https://localhost:3000/index.html?surface=legal&amp;workflow=law-search" />
-        <bt:Url id="Review.Url" DefaultValue="https://localhost:3000/index.html?surface=review&amp;workflow=review" />
-        <bt:Url id="CustomPrompts.Url" DefaultValue="https://localhost:3000/index.html?surface=create&amp;workflow=custom-prompts" />
-        <bt:Url id="Settings.Url" DefaultValue="https://localhost:3000/settings.html" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Tab.Label" DefaultValue="WordOllama.JS" />
-        <bt:String id="CreateGroup.Label" DefaultValue="Create"><bt:Override Locale="zh-CN" Value="创作" /></bt:String>
-        <bt:String id="Writing.Label" DefaultValue="Write"><bt:Override Locale="zh-CN" Value="自由创作" /></bt:String>
-        <bt:String id="Modify.Label" DefaultValue="Edit with Instructions"><bt:Override Locale="zh-CN" Value="按需修改" /></bt:String>
-        <bt:String id="CreateMore.Label" DefaultValue="More Creation"><bt:Override Locale="zh-CN" Value="更多创作" /></bt:String>
-        <bt:String id="Image.Label" DefaultValue="Understand Image"><bt:Override Locale="zh-CN" Value="图片理解" /></bt:String>
-        <bt:String id="Table.Label" DefaultValue="Generate Table"><bt:Override Locale="zh-CN" Value="生成表格" /></bt:String>
-        <bt:String id="Html.Label" DefaultValue="HTML App"><bt:Override Locale="zh-CN" Value="HTML 应用" /></bt:String>
-        <bt:String id="Markdown.Label" DefaultValue="Markdown Conversion"><bt:Override Locale="zh-CN" Value="Markdown 转换" /></bt:String>
-        <bt:String id="Agent.Label" DefaultValue="Agent" />
-        <bt:String id="EditGroup.Label" DefaultValue="Edit"><bt:Override Locale="zh-CN" Value="编辑" /></bt:String>
-        <bt:String id="EditMenu.Label" DefaultValue="Edit Text"><bt:Override Locale="zh-CN" Value="编辑文本" /></bt:String>
-        <bt:String id="Polish.Label" DefaultValue="Polish"><bt:Override Locale="zh-CN" Value="润色文本" /></bt:String>
-        <bt:String id="Expand.Label" DefaultValue="Expand"><bt:Override Locale="zh-CN" Value="扩写" /></bt:String>
-        <bt:String id="Simplify.Label" DefaultValue="Simplify"><bt:Override Locale="zh-CN" Value="简化" /></bt:String>
-        <bt:String id="Continue.Label" DefaultValue="Continue Writing"><bt:Override Locale="zh-CN" Value="续写" /></bt:String>
-        <bt:String id="Summarize.Label" DefaultValue="Summarize"><bt:Override Locale="zh-CN" Value="归纳" /></bt:String>
-        <bt:String id="Fix.Label" DefaultValue="Correct Errors"><bt:Override Locale="zh-CN" Value="改错" /></bt:String>
-        <bt:String id="Compare.Label" DefaultValue="Compare Results"><bt:Override Locale="zh-CN" Value="对比结果" /></bt:String>
-        <bt:String id="TranslateGroup.Label" DefaultValue="Translate"><bt:Override Locale="zh-CN" Value="翻译" /></bt:String>
-        <bt:String id="Translate.Label" DefaultValue="Translate"><bt:Override Locale="zh-CN" Value="翻译" /></bt:String>
-        <bt:String id="LegalGroup.Label" DefaultValue="Legal"><bt:Override Locale="zh-CN" Value="法务" /></bt:String>
-        <bt:String id="LegalMenu.Label" DefaultValue="Legal Tools"><bt:Override Locale="zh-CN" Value="法律工具" /></bt:String>
-        <bt:String id="Risk.Label" DefaultValue="Comment on Risks"><bt:Override Locale="zh-CN" Value="批注风险" /></bt:String>
-        <bt:String id="Fairness.Label" DefaultValue="Fairness Rewrite"><bt:Override Locale="zh-CN" Value="公平性改写" /></bt:String>
-        <bt:String id="MootCourt.Label" DefaultValue="Moot Court Investigation"><bt:Override Locale="zh-CN" Value="模拟法庭调查" /></bt:String>
-        <bt:String id="ContractCompare.Label" DefaultValue="Contract Revision Assessment"><bt:Override Locale="zh-CN" Value="合同修订评估" /></bt:String>
-        <bt:String id="LawSearch.Label" DefaultValue="Legal Search"><bt:Override Locale="zh-CN" Value="法律检索" /></bt:String>
-        <bt:String id="Review.Label" DefaultValue="Document Review"><bt:Override Locale="zh-CN" Value="文档审阅" /></bt:String>
-        <bt:String id="SettingsGroup.Label" DefaultValue="Settings"><bt:Override Locale="zh-CN" Value="设置" /></bt:String>
-        <bt:String id="CustomPrompts.Label" DefaultValue="My Commands"><bt:Override Locale="zh-CN" Value="我的指令" /></bt:String>
-        <bt:String id="Settings.Label" DefaultValue="Settings"><bt:Override Locale="zh-CN" Value="设置" /></bt:String>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="residDescription" DefaultValue="WordOllama.JS unified add-in for Word on Windows and Mac"><bt:Override Locale="zh-CN" Value="适用于 Windows 和 Mac Word 的 WordOllama.JS 统一加载项" /></bt:String>
-        <bt:String id="Workflow.Tooltip" DefaultValue="Open this workflow in its dedicated WordOllama.JS task pane"><bt:Override Locale="zh-CN" Value="在 WordOllama.JS 的独立任务窗格中打开此工作流" /></bt:String>
-        <bt:String id="CustomPrompts.Tooltip" DefaultValue="Search, run, and manage your reusable commands"><bt:Override Locale="zh-CN" Value="搜索、运行和管理可复用的指令" /></bt:String>
+        <bt:String id="residDescription" DefaultValue="WordOllama.JS unified add-in for Word on Windows and Mac"><bt:Override Locale="pl-PL" Value="Dodatek WordOllama.JS dla programu Word w systemach Windows i Mac" /><bt:Override Locale="zh-CN" Value="适用于 Windows 和 Mac Word 的 WordOllama.JS 统一加载项" /></bt:String>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

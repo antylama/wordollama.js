@@ -9,6 +9,10 @@ dist/
 .build-*/
 .artifacts-*/
 artifacts/
+officejs/apps/addin/dist-manifest/
+.env
+.env.local
+.env.*.local
 *.user
 *.suo
 *.log

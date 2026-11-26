@@ -19,6 +19,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "bundle": "vite build",
+    "manifest:zip": "node scripts/package-m365-manifest.mjs",
     "icons:generate": "node scripts/generate-icons.mjs",
     "notices:generate": "node scripts/collect-runtime-notices.mjs",
     "test:mock": "node --experimental-strip-types ../../test-fixtures/officejs-registry-smoke.ts",
