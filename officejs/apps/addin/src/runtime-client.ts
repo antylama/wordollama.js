@@ -75,6 +75,12 @@ import {
   type PairingStorage,
 } from "./pairing-session";
 
+function createOfficeHostId(): string {
+  return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `word-host-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function getOrCreateOfficeHostId(): string {
   const storageKey = "wordollama-office-host-id";
   try {
@@ -83,9 +89,7 @@ function getOrCreateOfficeHostId(): string {
   } catch {
     // Ignore storage access errors in restricted WebViews.
   }
-  const created = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `word-host-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const created = createOfficeHostId();
   try {
     if (typeof window !== "undefined") window.localStorage?.setItem(storageKey, created);
   } catch {
@@ -95,7 +99,7 @@ function getOrCreateOfficeHostId(): string {
 }
 
 export class RuntimeClient {
-  private readonly officeHostId = getOrCreateOfficeHostId();
+  private officeHostId = getOrCreateOfficeHostId();
   private cookieSession = false;
   private sessionToken: string | undefined;
   private csrfToken: string | undefined;
@@ -266,7 +270,7 @@ export class RuntimeClient {
       throw new Error(tr("runtime.pairFirst"));
     }
 
-    const response = await this.sessionFetch(`${BRIDGE_URL}/capabilities`, {
+    let response = await this.sessionFetch(`${BRIDGE_URL}/capabilities`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -274,6 +278,19 @@ export class RuntimeClient {
       },
       body: JSON.stringify({ tools, hostId: this.officeHostId }),
     });
+
+    if (response.status === 409) {
+      // Another active pane already owns the shared hostId; isolate this pane with a fresh id.
+      this.officeHostId = createOfficeHostId();
+      response = await this.sessionFetch(`${BRIDGE_URL}/capabilities`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-WordOllama-Session": this.sessionToken,
+        },
+        body: JSON.stringify({ tools, hostId: this.officeHostId }),
+      });
+    }
 
     if (!response.ok) {
       throw new Error(tr("runtime.registerToolsFailed", { status: response.status }));

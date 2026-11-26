@@ -661,7 +661,14 @@ app.MapPost("/capabilities", (
         return Results.BadRequest(new { error = "office_host_id_invalid" });
     }
     sessions.RegisterOfficeTools(token!, request.Tools);
-    officeTools.RegisterHost(token!, hostId, origin!, request.Tools);
+    try
+    {
+        officeTools.RegisterHost(token!, hostId, origin!, request.Tools);
+    }
+    catch (InvalidOperationException)
+    {
+        return Results.Conflict(new { error = "office_host_id_conflict" });
+    }
     return Results.Ok(new ToolCatalogResponse(
         BridgeProtocol.CurrentVersion,
         request.Tools.Count,
