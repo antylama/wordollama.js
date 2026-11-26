@@ -763,12 +763,13 @@ export class WpsWordAdapter extends OfficeJsWordAdapter {
     comments.Add(application.Selection?.Range, text);
   }
 
-  override async readComments(): Promise<Array<{ author: string; content: string; resolved: boolean }>> {
+  override async readComments(): Promise<Array<{ comment_index: number; author: string; content: string; resolved: boolean }>> {
     const comments = this.application().ActiveDocument?.Comments;
-    const result: Array<{ author: string; content: string; resolved: boolean }> = [];
+    const result: Array<{ comment_index: number; author: string; content: string; resolved: boolean }> = [];
     for (let index = 1; index <= Number(comments?.Count ?? 0); index += 1) {
       const comment = comments.Item(index);
       result.push({
+        comment_index: index,
         author: String(comment?.Author ?? ""),
         content: cleanText(comment?.Range?.Text ?? comment?.Content),
         resolved: false,

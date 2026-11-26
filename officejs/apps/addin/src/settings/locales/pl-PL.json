@@ -1269,7 +1269,10 @@
       "delete_paragraph": "Usuń akapit o wskazanym indeksie paragraph_index (liczonym od 1).",
       "insert_hyperlink": "Wstaw klikalny hiperlink w miejscu kursora lub zamiast zaznaczenia.",
       "get_track_changes": "Sprawdź, czy Śledzenie zmian w Wordzie jest włączone i w jakim trybie.",
-      "set_track_changes": "Włącz lub wyłącz Śledzenie zmian w aktywnym dokumencie Worda."
+      "set_track_changes": "Włącz lub wyłącz Śledzenie zmian w aktywnym dokumencie Worda.",
+      "reply_to_comment": "Odpowiedz na istniejący komentarz (comment_index liczony od 1 z read_comments).",
+      "resolve_comment": "Oznacz komentarz jako rozwiązany (lub otwórz go ponownie) po comment_index.",
+      "delete_comment": "Usuń istniejący komentarz o wskazanym indeksie comment_index z read_comments."
     },
     "settings": {
       "openFailed": "Unable to open Settings."

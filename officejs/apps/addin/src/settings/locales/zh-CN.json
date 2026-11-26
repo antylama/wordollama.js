@@ -1269,7 +1269,10 @@
       "delete_paragraph": "按从 1 开始的 paragraph_index 删除指定段落。",
       "insert_hyperlink": "在光标处或当前选区插入可点击的超链接。",
       "get_track_changes": "读取当前 Word 文档的修订跟踪状态与模式。",
-      "set_track_changes": "在当前 Word 文档中开启或关闭修订跟踪。"
+      "set_track_changes": "在当前 Word 文档中开启或关闭修订跟踪。",
+      "reply_to_comment": "按 read_comments 返回的从 1 开始的 comment_index 回复批注。",
+      "resolve_comment": "按 comment_index 将批注标记为已解决（或重新打开）。",
+      "delete_comment": "按 read_comments 返回的从 1 开始的 comment_index 删除批注。"
     },
     "settings": {
       "openFailed": "无法打开设置。"

@@ -277,6 +277,9 @@ export class OfficeJsWordAdapter {
     const wordApi14 = [
       "read_comments",
       "add_comment",
+      "reply_to_comment",
+      "resolve_comment",
+      "delete_comment",
       "apply_precise_revision",
       "get_track_changes",
       "set_track_changes",
@@ -1229,7 +1232,7 @@ export class OfficeJsWordAdapter {
     });
   }
 
-  async readComments(): Promise<Array<{ author: string; content: string; resolved: boolean }>> {
+  async readComments(): Promise<Array<{ comment_index: number; author: string; content: string; resolved: boolean }>> {
     return Word.run(async (context) => {
       // Body.getComments() belongs to the cross-platform WordApi 1.4 set.
       // Document.comments is a newer WordApiDesktop 1.4 property and would
@@ -1237,11 +1240,48 @@ export class OfficeJsWordAdapter {
       const comments = context.document.body.getComments();
       comments.load("items/authorName,items/content,items/resolved");
       await context.sync();
-      return comments.items.slice(0, 50).map((comment) => ({
+      return comments.items.slice(0, 50).map((comment, index) => ({
+        comment_index: index + 1,
         author: comment.authorName,
         content: comment.content,
         resolved: comment.resolved,
       }));
+    });
+  }
+
+  private async withComment(commentIndex: number, action: (comment: Word.Comment) => void): Promise<void> {
+    if (!Number.isInteger(commentIndex) || commentIndex < 1) {
+      throw new Error("comment_index must be a positive integer");
+    }
+    await Word.run(async (context) => {
+      const comments = context.document.body.getComments();
+      comments.load("items");
+      await context.sync();
+      const comment = comments.items[commentIndex - 1];
+      if (!comment) {
+        throw new Error(`comment ${commentIndex} is out of range`);
+      }
+      action(comment);
+      await context.sync();
+    });
+  }
+
+  async replyToComment(commentIndex: number, text: string): Promise<void> {
+    if (!text.trim()) throw new Error("text is required");
+    await this.withComment(commentIndex, (comment) => {
+      comment.reply(text.trim());
+    });
+  }
+
+  async resolveComment(commentIndex: number, resolved = true): Promise<void> {
+    await this.withComment(commentIndex, (comment) => {
+      comment.resolved = resolved;
+    });
+  }
+
+  async deleteComment(commentIndex: number): Promise<void> {
+    await this.withComment(commentIndex, (comment) => {
+      comment.delete();
     });
   }
 

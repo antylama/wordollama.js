@@ -567,6 +567,44 @@ const descriptors: OfficeToolDescriptor[] = [
       required: ["enabled"],
     },
   },
+  {
+    name: "reply_to_comment",
+    description: "reply_to_comment",
+    isWriteOperation: true,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        comment_index: { type: "integer", minimum: 1, description: "1-based index from read_comments." },
+        text: { type: "string", description: "Reply text to add to the comment thread." },
+      },
+      required: ["comment_index", "text"],
+    },
+  },
+  {
+    name: "resolve_comment",
+    description: "resolve_comment",
+    isWriteOperation: true,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        comment_index: { type: "integer", minimum: 1, description: "1-based index from read_comments." },
+        resolved: { type: "boolean", description: "True to resolve (default), false to reopen." },
+      },
+      required: ["comment_index"],
+    },
+  },
+  {
+    name: "delete_comment",
+    description: "delete_comment",
+    isWriteOperation: true,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        comment_index: { type: "integer", minimum: 1, description: "1-based index from read_comments." },
+      },
+      required: ["comment_index"],
+    },
+  },
 ];
 
 export class OfficeJsToolRegistry {
@@ -806,6 +844,18 @@ export class OfficeJsToolRegistry {
         if (enabled === undefined) throw new Error("enabled must be a boolean");
         return this.word.setTrackChanges(enabled, this.optionalBoolean(args, "mine_only") ?? false);
       }
+      case "reply_to_comment":
+        await this.word.replyToComment(this.requireInt(args, "comment_index"), this.requireString(args, "text"));
+        return { replied: true };
+      case "resolve_comment":
+        await this.word.resolveComment(
+          this.requireInt(args, "comment_index"),
+          this.optionalBoolean(args, "resolved") ?? true,
+        );
+        return { resolved: this.optionalBoolean(args, "resolved") ?? true };
+      case "delete_comment":
+        await this.word.deleteComment(this.requireInt(args, "comment_index"));
+        return { deleted: true };
       default:
         throw new Error(`Office.js tool is not registered: ${name}`);
     }

@@ -1269,7 +1269,10 @@
       "delete_paragraph": "Delete a paragraph by its 1-based paragraph_index.",
       "insert_hyperlink": "Insert a clickable hyperlink at the cursor or over the current selection.",
       "get_track_changes": "Read whether Word Track Changes is currently enabled and its mode.",
-      "set_track_changes": "Enable or disable Word Track Changes for the active document."
+      "set_track_changes": "Enable or disable Word Track Changes for the active document.",
+      "reply_to_comment": "Reply to an existing comment thread by its 1-based comment_index from read_comments.",
+      "resolve_comment": "Mark an existing comment as resolved (or reopen it) by comment_index.",
+      "delete_comment": "Delete an existing comment by its 1-based comment_index from read_comments."
     },
     "settings": {
       "openFailed": "Unable to open Settings."
