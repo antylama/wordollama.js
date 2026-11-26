@@ -46,7 +46,7 @@ export default defineConfig(async ({ command }) => {
     base: "./",
     define: {
       __WORDOLLAMA_BRIDGE_URL__: JSON.stringify(
-        environment?.WORDOLLAMA_BRIDGE_URL ?? "http://127.0.0.1:37421",
+        environment?.WORDOLLAMA_BRIDGE_URL ?? "",
       ),
       __WORDOLLAMA_ADDIN_VERSION__: JSON.stringify(
         environment?.WORDOLLAMA_ADDIN_VERSION ?? packageVersion,

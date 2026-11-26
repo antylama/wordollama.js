@@ -371,6 +371,12 @@ if (Directory.Exists(addinWebRoot))
         },
     });
 }
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+        Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto |
+        Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedHost,
+});
 app.UseCors("officejs");
 app.Use(async (context, next) =>
 {
@@ -410,7 +416,7 @@ app.Use(async (context, next) =>
     }
     if (unsafeMethod &&
         !context.Request.Path.StartsWithSegments("/pair") &&
-        !string.Equals(context.Request.Path.Value, WordMcpEndpoint.Path, StringComparison.OrdinalIgnoreCase))
+        !context.Request.Path.StartsWithSegments(WordMcpEndpoint.Path, StringComparison.OrdinalIgnoreCase))
     {
         var token = context.Request.Headers[BridgeProtocol.SessionHeader].FirstOrDefault()
             ?? context.Request.Cookies[BridgeSessionStore.CookieName];
@@ -681,7 +687,20 @@ app.MapPost("/office-tools/hosts/{hostId}/requests/{callId}/result", (
         : Results.NotFound(new { error = "office_tool_call_not_pending" });
 });
 
-app.MapPost(WordMcpEndpoint.Path, WordMcpEndpoint.HandleAsync);
+app.MapPost(WordMcpEndpoint.Path, (
+    HttpRequest request,
+    OfficeToolBroker broker,
+    WordMcpOptions options,
+    CancellationToken cancellationToken) =>
+    WordMcpEndpoint.HandleAsync(request, broker, options, cancellationToken));
+
+app.MapPost($"{WordMcpEndpoint.Path}/{{token}}", (
+    HttpRequest request,
+    OfficeToolBroker broker,
+    WordMcpOptions options,
+    CancellationToken cancellationToken,
+    string token) =>
+    WordMcpEndpoint.HandleAsync(request, broker, options, cancellationToken, token));
 
 app.MapGet("/settings/word-mcp", (
     HttpRequest httpRequest,

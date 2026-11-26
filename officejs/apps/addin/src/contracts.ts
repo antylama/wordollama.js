@@ -2,9 +2,15 @@ declare const __WORDOLLAMA_BRIDGE_URL__: string | undefined;
 declare const __WORDOLLAMA_ADDIN_VERSION__: string | undefined;
 
 export const BRIDGE_PROTOCOL_VERSION = "1.0";
-export const BRIDGE_URL = typeof __WORDOLLAMA_BRIDGE_URL__ === "string"
-  ? __WORDOLLAMA_BRIDGE_URL__
-  : "http://127.0.0.1:37421";
+export const BRIDGE_URL =
+  typeof __WORDOLLAMA_BRIDGE_URL__ === "string" && __WORDOLLAMA_BRIDGE_URL__.length > 0
+    ? __WORDOLLAMA_BRIDGE_URL__
+    : typeof window !== "undefined" &&
+        (window.location.protocol === "https:" || window.location.protocol === "http:") &&
+        window.location.port !== "3000" &&
+        window.location.port !== "5173"
+      ? window.location.origin
+      : "http://127.0.0.1:37421";
 export const ADDIN_VERSION = typeof __WORDOLLAMA_ADDIN_VERSION__ === "string"
   ? __WORDOLLAMA_ADDIN_VERSION__
   : "development";

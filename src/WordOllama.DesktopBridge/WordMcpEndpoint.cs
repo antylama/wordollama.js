@@ -26,7 +26,10 @@ public sealed class WordMcpOptions
 
     public string GenerateAndEnable(IMutableSecretStore secrets)
     {
-        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(24));
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
         secrets.Set(TokenSecretName, token);
         secrets.Set(EnabledSecretName, bool.TrueString);
         lock (_gate)
@@ -62,13 +65,20 @@ public static class WordMcpEndpoint
     private const string StatusToolName = "wordollama_status";
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
 
-    public static bool IsAuthorized(HttpRequest request, WordMcpOptions options)
+    public static bool IsAuthorized(HttpRequest request, WordMcpOptions options, string? routeToken = null)
     {
         if (!options.Enabled || string.IsNullOrWhiteSpace(options.AccessToken)) return false;
+        string? supplied = null;
         var authorization = request.Headers.Authorization.FirstOrDefault();
-        if (authorization is null || !authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            return false;
-        var supplied = authorization["Bearer ".Length..].Trim();
+        if (authorization is not null && authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            supplied = authorization["Bearer ".Length..].Trim();
+        }
+        else if (!string.IsNullOrWhiteSpace(routeToken))
+        {
+            supplied = routeToken.Trim();
+        }
+        if (string.IsNullOrEmpty(supplied)) return false;
         var expectedBytes = Encoding.UTF8.GetBytes(options.AccessToken);
         var suppliedBytes = Encoding.UTF8.GetBytes(supplied);
         return expectedBytes.Length == suppliedBytes.Length &&
@@ -79,10 +89,11 @@ public static class WordMcpEndpoint
         HttpRequest request,
         OfficeToolBroker broker,
         WordMcpOptions options,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? token = null)
     {
         if (!options.Enabled) return Results.NotFound();
-        if (!IsAuthorized(request, options)) return Results.Unauthorized();
+        if (!IsAuthorized(request, options, token)) return Results.Unauthorized();
 
         JsonDocument document;
         try
