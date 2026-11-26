@@ -1526,22 +1526,21 @@ export class OfficeJsWordAdapter {
       await context.sync();
       const table = tables.items[tableIndex - 1];
       if (!table) throw new Error(`table ${tableIndex} is out of range`);
-      table.load("rowCount");
-      table.columns.load("items");
+      // Iterate row.cells instead of table.columns so tables with merged cells or mixed column widths succeed.
       table.rows.load("items");
-      const cells: Word.TableCell[][] = [];
       await context.sync();
-      const columnCount = table.columns.items.length;
-      for (let row = 0; row < table.rowCount; row++) {
-        cells.push([]);
-        for (let column = 0; column < columnCount; column++) {
-          const cell = table.getCell(row, column);
+      table.rows.items.forEach((row) => {
+        row.cells.load("items");
+      });
+      await context.sync();
+      const rows = table.rows.items.map((row) => {
+        row.cells.items.forEach((cell) => {
           cell.load("value");
-          cells[row].push(cell);
-        }
-      }
+        });
+        return row.cells.items;
+      });
       await context.sync();
-      return { tableIndex, rows: cells.map((row) => row.map((cell) => cell.value)) };
+      return { tableIndex, rows: rows.map((rowCells) => rowCells.map((cell) => cell.value)) };
     });
   }
 
