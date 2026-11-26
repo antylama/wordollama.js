@@ -101,19 +101,29 @@ export function trackedRevisionIdentity(revision: RevisionIdentityFields): strin
 
 const BUILT_IN_STYLE_ALIASES: Record<string, Word.BuiltInStyleName> = {
   normal: "Normal" as Word.BuiltInStyleName,
+  normalny: "Normal" as Word.BuiltInStyleName,
   正文: "Normal" as Word.BuiltInStyleName,
   title: "Title" as Word.BuiltInStyleName,
-  标题: "Title" as Word.BuiltInStyleName,
+  tytuł: "Title" as Word.BuiltInStyleName,
   subtitle: "Subtitle" as Word.BuiltInStyleName,
+  podtytuł: "Subtitle" as Word.BuiltInStyleName,
+  标题: "Title" as Word.BuiltInStyleName,
   副标题: "Subtitle" as Word.BuiltInStyleName,
   nospacing: "NoSpacing" as Word.BuiltInStyleName,
+  bezodstępów: "NoSpacing" as Word.BuiltInStyleName,
   listparagraph: "ListParagraph" as Word.BuiltInStyleName,
+  listnumber: "ListNumber" as Word.BuiltInStyleName,
+  listanumerowana: "ListNumber" as Word.BuiltInStyleName,
+  listbullet: "ListBullet" as Word.BuiltInStyleName,
+  listapunktowana: "ListBullet" as Word.BuiltInStyleName,
+  listcontinue: "ListContinue" as Word.BuiltInStyleName,
   quote: "Quote" as Word.BuiltInStyleName,
+  cytat: "Quote" as Word.BuiltInStyleName,
 };
 
 export function resolveBuiltInStyleName(styleName: string): Word.BuiltInStyleName | undefined {
   const normalized = styleName.trim().toLocaleLowerCase().replace(/[\s_-]+/g, "");
-  const headingMatch = /^(?:heading|标题)([1-9])$/.exec(normalized);
+  const headingMatch = /^(?:heading|nagłówek|naglowek|标题)([1-9])$/.exec(normalized);
   if (headingMatch) return `Heading${headingMatch[1]}` as Word.BuiltInStyleName;
   return BUILT_IN_STYLE_ALIASES[normalized];
 }
@@ -1414,19 +1424,40 @@ export class OfficeJsWordAdapter {
     }
     return Word.run(async (context) => {
       const styles = context.document.getStyles();
-      styles.load("items/nameLocal,items/type,items/inUse,items/font/color,items/font/name,items/font/size,items/font/bold,items/font/italic");
+      styles.load("items/nameLocal,items/type,items/inUse");
       await context.sync();
       const filtered = inUseOnly ? styles.items.filter((style) => style.inUse) : styles.items;
-      const mapped = filtered.map((style) => ({
-        name: style.nameLocal,
-        type: String(style.type),
-        inUse: Boolean(style.inUse),
-        fontColor: style.font?.color ?? "",
-        fontName: style.font?.name ?? "",
-        fontSize: Number(style.font?.size ?? 0),
-        bold: Boolean(style.font?.bold),
-        italic: Boolean(style.font?.italic),
-      }));
+      const fontStyles = filtered.filter((style) => {
+        const kind = String(style.type).toLowerCase();
+        return kind === "paragraph" || kind === "character";
+      });
+      for (const style of fontStyles) {
+        style.font.load("color,name,size,bold,italic");
+      }
+      if (fontStyles.length > 0) {
+        await context.sync();
+      }
+      const readProp = <T>(reader: () => T, fallback: T): T => {
+        try {
+          const value = reader();
+          return value ?? fallback;
+        } catch {
+          return fallback;
+        }
+      };
+      const mapped = filtered.map((style) => {
+        const hasFont = fontStyles.includes(style);
+        return {
+          name: style.nameLocal,
+          type: String(style.type),
+          inUse: Boolean(style.inUse),
+          fontColor: hasFont ? readProp(() => style.font?.color ?? "", "") : "",
+          fontName: hasFont ? readProp(() => style.font?.name ?? "", "") : "",
+          fontSize: hasFont ? Number(readProp(() => style.font?.size ?? 0, 0)) : 0,
+          bold: hasFont ? Boolean(readProp(() => style.font?.bold ?? false, false)) : false,
+          italic: hasFont ? Boolean(readProp(() => style.font?.italic ?? false, false)) : false,
+        };
+      });
       return { count: mapped.length, styles: mapped };
     });
   }
