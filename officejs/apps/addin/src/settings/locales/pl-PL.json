@@ -1272,7 +1272,9 @@
       "set_track_changes": "Włącz lub wyłącz Śledzenie zmian w aktywnym dokumencie Worda.",
       "reply_to_comment": "Odpowiedz na istniejący komentarz (comment_index liczony od 1 z read_comments).",
       "resolve_comment": "Oznacz komentarz jako rozwiązany (lub otwórz go ponownie) po comment_index.",
-      "delete_comment": "Usuń istniejący komentarz o wskazanym indeksie comment_index z read_comments."
+      "delete_comment": "Usuń istniejący komentarz o wskazanym indeksie comment_index z read_comments.",
+      "read_footnotes": "Odczytaj wszystkie przypisy dolne w aktywnym dokumencie Worda.",
+      "insert_footnote": "Wstaw przypis dolny w miejscu kursora lub zaznaczenia."
     },
     "settings": {
       "openFailed": "Unable to open Settings."

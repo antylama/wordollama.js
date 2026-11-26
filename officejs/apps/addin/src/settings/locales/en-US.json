@@ -1272,7 +1272,9 @@
       "set_track_changes": "Enable or disable Word Track Changes for the active document.",
       "reply_to_comment": "Reply to an existing comment thread by its 1-based comment_index from read_comments.",
       "resolve_comment": "Mark an existing comment as resolved (or reopen it) by comment_index.",
-      "delete_comment": "Delete an existing comment by its 1-based comment_index from read_comments."
+      "delete_comment": "Delete an existing comment by its 1-based comment_index from read_comments.",
+      "read_footnotes": "Read all footnotes in the active Word document.",
+      "insert_footnote": "Insert a footnote at the current cursor position or selection."
     },
     "settings": {
       "openFailed": "Unable to open Settings."

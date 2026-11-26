@@ -1272,7 +1272,9 @@
       "set_track_changes": "在当前 Word 文档中开启或关闭修订跟踪。",
       "reply_to_comment": "按 read_comments 返回的从 1 开始的 comment_index 回复批注。",
       "resolve_comment": "按 comment_index 将批注标记为已解决（或重新打开）。",
-      "delete_comment": "按 read_comments 返回的从 1 开始的 comment_index 删除批注。"
+      "delete_comment": "按 read_comments 返回的从 1 开始的 comment_index 删除批注。",
+      "read_footnotes": "读取当前 Word 文档中的所有脚注。",
+      "insert_footnote": "在当前光标或选区位置插入脚注。"
     },
     "settings": {
       "openFailed": "无法打开设置。"

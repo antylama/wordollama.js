@@ -284,7 +284,12 @@ export class OfficeJsWordAdapter {
       "get_track_changes",
       "set_track_changes",
     ];
-    if (name === "list_styles" || name === "edit_style") {
+    if (
+      name === "list_styles" ||
+      name === "edit_style" ||
+      name === "read_footnotes" ||
+      name === "insert_footnote"
+    ) {
       return requirements.isSetSupported("WordApi", "1.5");
     }
     const wordApi13 = [
@@ -1282,6 +1287,34 @@ export class OfficeJsWordAdapter {
   async deleteComment(commentIndex: number): Promise<void> {
     await this.withComment(commentIndex, (comment) => {
       comment.delete();
+    });
+  }
+
+  async readFootnotes(): Promise<Array<{ footnote_index: number; text: string }>> {
+    if (!Office.context?.requirements?.isSetSupported?.("WordApi", "1.5")) {
+      throw new Error("Footnotes API requires WordApi 1.5 or later.");
+    }
+    return Word.run(async (context) => {
+      const footnotes = context.document.body.footnotes;
+      footnotes.load("items/body/text");
+      await context.sync();
+      return footnotes.items.slice(0, 100).map((item, index) => ({
+        footnote_index: index + 1,
+        text: item.body.text.replace(/[\r\x07]+$/g, "").trim(),
+      }));
+    });
+  }
+
+  async insertFootnote(text: string, expectedSelectionHash?: string): Promise<void> {
+    if (!text.trim()) throw new Error("text is required");
+    if (!Office.context?.requirements?.isSetSupported?.("WordApi", "1.5")) {
+      throw new Error("Footnotes API requires WordApi 1.5 or later.");
+    }
+    await Word.run(async (context) => {
+      const selection = context.document.getSelection();
+      if (expectedSelectionHash) await this.assertExpectedSelection(context, selection, expectedSelectionHash);
+      selection.insertFootnote(text.trim());
+      await context.sync();
     });
   }
 

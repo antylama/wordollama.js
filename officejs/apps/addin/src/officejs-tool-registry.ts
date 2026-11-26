@@ -605,6 +605,25 @@ const descriptors: OfficeToolDescriptor[] = [
       required: ["comment_index"],
     },
   },
+  {
+    name: "read_footnotes",
+    description: "read_footnotes",
+    isWriteOperation: false,
+    parameterSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "insert_footnote",
+    description: "insert_footnote",
+    isWriteOperation: true,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        text: { type: "string", description: "Footnote text to insert at the current cursor or selection." },
+        expected_selection_hash: expectedSelectionHashSchema,
+      },
+      required: ["text", "expected_selection_hash"],
+    },
+  },
 ];
 
 export class OfficeJsToolRegistry {
@@ -856,6 +875,11 @@ export class OfficeJsToolRegistry {
       case "delete_comment":
         await this.word.deleteComment(this.requireInt(args, "comment_index"));
         return { deleted: true };
+      case "read_footnotes":
+        return this.word.readFootnotes();
+      case "insert_footnote":
+        await this.word.insertFootnote(this.requireString(args, "text"), this.requireSelectionHash(args));
+        return { inserted: true };
       default:
         throw new Error(`Office.js tool is not registered: ${name}`);
     }
