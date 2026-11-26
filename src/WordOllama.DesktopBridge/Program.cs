@@ -278,6 +278,11 @@ else
 {
     builder.WebHost.UseUrls(bridgeUrls);
 }
+builder.Services.Configure<HostOptions>(options =>
+{
+    // Abort long-lived polling/streaming connections quickly on Ctrl+C instead of waiting the 30s default.
+    options.ShutdownTimeout = TimeSpan.FromSeconds(2);
+});
 builder.Services.AddSingleton<BridgeSessionStore>();
 builder.Services.AddSingleton<OfficeToolBroker>();
 builder.Services.AddSingleton(wordMcpOptions);
@@ -669,13 +674,24 @@ app.MapGet("/office-tools/hosts/{hostId}/requests/next", async (
     string hostId,
     BridgeSessionStore sessions,
     OfficeToolBroker officeTools,
+    IHostApplicationLifetime lifetime,
     CancellationToken cancellationToken) =>
 {
     var token = httpRequest.Headers[BridgeProtocol.SessionHeader].FirstOrDefault();
     var origin = httpRequest.Headers.Origin.FirstOrDefault();
     if (!sessions.TryGet(token, origin, out _)) return Results.Unauthorized();
-    var call = await officeTools.WaitForCallAsync(token!, hostId, cancellationToken);
-    return call is null ? Results.NoContent() : Results.Ok(call);
+    using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+        cancellationToken,
+        lifetime.ApplicationStopping);
+    try
+    {
+        var call = await officeTools.WaitForCallAsync(token!, hostId, linkedCts.Token);
+        return call is null ? Results.NoContent() : Results.Ok(call);
+    }
+    catch (OperationCanceledException) when (lifetime.ApplicationStopping.IsCancellationRequested)
+    {
+        return Results.NoContent();
+    }
 });
 
 app.MapPost("/office-tools/hosts/{hostId}/requests/{callId}/result", (
@@ -2131,6 +2147,7 @@ app.MapGet("/agent/sessions/{id}/events", async (
     AgentSessionManager agentSessions,
     BridgeSessionStore sessions,
     AutomaticMemoryService automaticMemory,
+    IHostApplicationLifetime lifetime,
     CancellationToken cancellationToken) =>
 {
     var token = httpContext.Request.Headers[BridgeProtocol.SessionHeader].FirstOrDefault();
@@ -2142,33 +2159,45 @@ app.MapGet("/agent/sessions/{id}/events", async (
         return;
     }
 
+    using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+        cancellationToken,
+        lifetime.ApplicationStopping);
+    var streamToken = linkedCts.Token;
+
     httpContext.Response.ContentType = "application/x-ndjson";
     httpContext.Response.Headers.CacheControl = "no-cache";
     httpContext.Response.Headers["X-Accel-Buffering"] = "no";
-    await httpContext.Response.StartAsync(cancellationToken);
+    await httpContext.Response.StartAsync(streamToken);
     var memoryObserved = false;
-    await using var enumerator = session.ReadEventsAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
-    while (true)
+    try
     {
-        var moveNextTask = enumerator.MoveNextAsync().AsTask();
-        while (!moveNextTask.IsCompleted)
+        await using var enumerator = session.ReadEventsAsync(streamToken).GetAsyncEnumerator(streamToken);
+        while (true)
         {
-            var completed = await Task.WhenAny(moveNextTask, Task.Delay(TimeSpan.FromSeconds(15), cancellationToken));
-            if (completed == moveNextTask) break;
-            await httpContext.Response.WriteAsync("\n", cancellationToken);
-            await httpContext.Response.Body.FlushAsync(cancellationToken);
+            var moveNextTask = enumerator.MoveNextAsync().AsTask();
+            while (!moveNextTask.IsCompleted)
+            {
+                var completed = await Task.WhenAny(moveNextTask, Task.Delay(TimeSpan.FromSeconds(15), streamToken));
+                if (completed == moveNextTask) break;
+                await httpContext.Response.WriteAsync("\n", streamToken);
+                await httpContext.Response.Body.FlushAsync(streamToken);
+            }
+            if (!await moveNextTask) break;
+            var runtimeEvent = enumerator.Current;
+            if (!memoryObserved && string.Equals(runtimeEvent.Type, "completed", StringComparison.OrdinalIgnoreCase))
+            {
+                automaticMemory.ObserveUserText(session.UserRequirement);
+                memoryObserved = true;
+            }
+            await httpContext.Response.WriteAsync(
+                JsonSerializer.Serialize(runtimeEvent, eventJsonOptions) + "\n",
+                streamToken);
+            await httpContext.Response.Body.FlushAsync(streamToken);
         }
-        if (!await moveNextTask) break;
-        var runtimeEvent = enumerator.Current;
-        if (!memoryObserved && string.Equals(runtimeEvent.Type, "completed", StringComparison.OrdinalIgnoreCase))
-        {
-            automaticMemory.ObserveUserText(session.UserRequirement);
-            memoryObserved = true;
-        }
-        await httpContext.Response.WriteAsync(
-            JsonSerializer.Serialize(runtimeEvent, eventJsonOptions) + "\n",
-            cancellationToken);
-        await httpContext.Response.Body.FlushAsync(cancellationToken);
+    }
+    catch (OperationCanceledException) when (streamToken.IsCancellationRequested)
+    {
+        // Client disconnected or Bridge is shutting down.
     }
 });
 
