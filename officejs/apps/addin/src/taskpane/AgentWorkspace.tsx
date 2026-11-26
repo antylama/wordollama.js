@@ -95,11 +95,16 @@ export function AgentWorkspace() {
             />
             <button
               id="agent-image-remove"
-              className="btn btn-ghost btn-xs text-button"
+              className="btn btn-ghost btn-xs agent-image-remove-btn"
               type="button"
-              data-i18n="taskpane.agent.removeImage"
+              aria-label="Remove image"
+              title="Remove image"
+              data-i18n-aria-label="taskpane.agent.removeImage"
+              data-i18n-title="taskpane.agent.removeImage"
             >
-              Remove image
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M4 4l8 8M12 4l-8 8" />
+              </svg>
             </button>
           </div>
           <div

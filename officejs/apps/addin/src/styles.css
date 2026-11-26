@@ -525,7 +525,7 @@ button { cursor: pointer; }
 .composer-toolbar { justify-content: space-between; padding: 4px 8px 0; color: #9ca3af; font-size: 9px; }
 .agent-image-preview { position: relative; width: fit-content; max-width: calc(100% - 16px); margin: 8px 8px 2px; padding: 4px; border: 1px solid #d7dce5; border-radius: 9px; background: #f8fafc; }
 .agent-image-preview img { display: block; max-width: 150px; max-height: 110px; border-radius: 6px; object-fit: contain; }
-.agent-image-preview button { position: absolute; top: 3px; right: 3px; padding: 2px 5px; border-radius: 5px; background: color-mix(in srgb, var(--canvas) 88%, transparent); font-size: 9px; }
+.agent-image-preview button { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: color-mix(in srgb, var(--canvas) 90%, transparent); }
 .chat-bubble .message-image { display: block; max-width: min(100%, 260px); max-height: 240px; margin: 0 0 7px; border-radius: 8px; object-fit: contain; }
 .command-menu { max-height: 230px; margin: 4px 0 6px; overflow-y: auto; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); box-shadow: none; }
 .command-item { display: block; width: 100%; padding: 7px 10px; border: 0; border-radius: 6px; color: inherit; text-align: left; background: transparent; }
