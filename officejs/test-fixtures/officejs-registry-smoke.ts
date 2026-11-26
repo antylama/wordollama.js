@@ -42,8 +42,8 @@ const expected = [
 for (const name of expected) {
   if (!names.includes(name)) throw new Error(`missing Office.js tool: ${name}`);
 }
-if (names.length !== 47) {
-  throw new Error(`expected 47 Office.js descriptors, got ${names.length}`);
+if (names.length !== 48) {
+  throw new Error(`expected 48 Office.js descriptors, got ${names.length}`);
 }
 for (const name of [
   "insert_at_cursor",

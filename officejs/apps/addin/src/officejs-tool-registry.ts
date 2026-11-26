@@ -231,6 +231,12 @@ const descriptors: OfficeToolDescriptor[] = [
     },
   },
   {
+    name: "list_tables",
+    description: "List all tables in the document with their 1-based table_index, rowCount, columnCount, and first-row preview.",
+    isWriteOperation: false,
+    parameterSchema: { type: "object", properties: {}, required: [] },
+  },
+  {
     name: "read_table",
     description: "Read a specified Word table as two-dimensional cell data. table_index is 1-based (first table is 1).",
     isWriteOperation: false,
@@ -694,6 +700,8 @@ export class OfficeJsToolRegistry {
       case "insert_page_break":
         await this.word.insertPageBreak(this.requireSelectionHash(args));
         return { inserted: true };
+      case "list_tables":
+        return this.word.listTables();
       case "read_table":
         return this.word.readTable(this.requireInt(args, "table_index"));
       case "insert_table":

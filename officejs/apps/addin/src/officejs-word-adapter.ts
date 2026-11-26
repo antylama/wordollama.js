@@ -298,6 +298,7 @@ export class OfficeJsWordAdapter {
       "insert_at_cursor",
       "format_text",
       "insert_page_break",
+      "list_tables",
       "read_table",
       "table_insert_row",
       "table_set_cell",
@@ -1400,6 +1401,40 @@ export class OfficeJsWordAdapter {
       if (expectedSelectionHash) await this.assertExpectedSelection(context, selection, expectedSelectionHash);
       selection.insertBreak(Word.BreakType.page, Word.InsertLocation.after);
       await context.sync();
+    });
+  }
+
+  async listTables(): Promise<{
+    tableCount: number;
+    tables: Array<{
+      tableIndex: number;
+      rowCount: number;
+      columnCount: number;
+      headerPreview: string[];
+    }>;
+  }> {
+    return Word.run(async (context) => {
+      const tables = context.document.body.tables;
+      tables.load("items");
+      await context.sync();
+      tables.items.forEach((table) => {
+        table.load(["rowCount", "values"]);
+      });
+      await context.sync();
+      return {
+        tableCount: tables.items.length,
+        tables: tables.items.map((table, index) => {
+          const firstRow = Array.isArray(table.values) && Array.isArray(table.values[0])
+            ? table.values[0].map((cell) => String(cell ?? "").trim())
+            : [];
+          return {
+            tableIndex: index + 1,
+            rowCount: table.rowCount,
+            columnCount: firstRow.length,
+            headerPreview: firstRow.slice(0, 8),
+          };
+        }),
+      };
     });
   }
 
