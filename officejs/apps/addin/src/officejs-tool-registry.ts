@@ -412,6 +412,25 @@ const descriptors: OfficeToolDescriptor[] = [
     },
   },
   {
+    name: "get_active_page",
+    description: "Detect the 1-based page number of the current cursor/selection, visible viewport pages, and total page count.",
+    isWriteOperation: false,
+    parameterSchema: { type: "object", properties: {}, required: [] },
+  },
+  {
+    name: "get_page_preview",
+    description: "Render a visual PNG preview of a Word document page. Omit page to render the current active page immediately without a separate lookup.",
+    isWriteOperation: false,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        page: { type: "integer", minimum: 1, description: "1-based page number to render. Defaults to the current active page." },
+        dpi: { type: "integer", minimum: 72, maximum: 200, description: "Render resolution in DPI (72-200, default 120)." },
+      },
+      required: [],
+    },
+  },
+  {
     name: "get_page_setup",
     description: "Read current page setup (margins, orientation, paper size, dimensions, header/footer distances, and section flags) for all document sections, in points.",
     isWriteOperation: false,
@@ -771,6 +790,13 @@ export class OfficeJsToolRegistry {
       case "format_list":
         await this.word.formatList(this.requireString(args, "list_type"), this.requireSelectionHash(args));
         return { formatted: true };
+      case "get_active_page":
+        return this.word.getActivePage();
+      case "get_page_preview":
+        return this.word.getPagePreview({
+          page: this.optionalNumber(args, "page"),
+          dpi: this.optionalNumber(args, "dpi"),
+        });
       case "get_page_setup":
         return this.word.getPageSetup();
       case "page_setup":

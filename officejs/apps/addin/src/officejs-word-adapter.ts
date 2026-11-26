@@ -305,8 +305,12 @@ export class OfficeJsWordAdapter {
       "format_table",
     ];
     const wordApi12 = ["insert_image"];
+    const desktop12 = ["get_active_page"];
     const desktop13 = ["format_list", "get_page_setup", "page_setup"];
     const desktop14 = ["read_bookmarks", "update_toc", "revisions"];
+    if (name === "get_page_preview") {
+      return typeof Office !== "undefined" && typeof Office.context?.document?.getFileAsync === "function";
+    }
     if (wordApi14.includes(name)) {
       return requirements.isSetSupported("WordApi", "1.4");
     }
@@ -315,6 +319,9 @@ export class OfficeJsWordAdapter {
     }
     if (wordApi12.includes(name)) {
       return requirements.isSetSupported("WordApi", "1.2");
+    }
+    if (desktop12.includes(name)) {
+      return requirements.isSetSupported("WordApiDesktop", "1.2");
     }
     if (desktop13.includes(name)) {
       return requirements.isSetSupported("WordApiDesktop", "1.3");
@@ -1823,6 +1830,167 @@ export class OfficeJsWordAdapter {
       }
       await context.sync();
     });
+  }
+
+  async getActivePage(): Promise<{
+    currentPage: number;
+    viewportPages: number[];
+    totalPages: number | null;
+  }> {
+    return Word.run(async (context) => {
+      const selection = context.document.getSelection();
+      const selectionPages = selection.pages;
+      const pane = context.document.activeWindow.activePane;
+      const allPages = pane.pages;
+      const viewportPages = pane.pagesEnclosingViewport;
+      selectionPages.load("items/index");
+      allPages.load("items/index");
+      viewportPages.load("items/index");
+      await context.sync();
+      const visible = viewportPages.items.map((page) => page.index);
+      const currentPage = selectionPages.items[0]?.index ?? visible[0] ?? 1;
+      const totalPages = allPages.items.length || null;
+      return {
+        currentPage,
+        viewportPages: visible,
+        totalPages,
+      };
+    });
+  }
+
+  async getPagePreview(options: {
+    page?: number;
+    dpi?: number;
+  } = {}): Promise<{
+    __wordollamaImage: true;
+    mimeType: "image/png";
+    base64: string;
+    page: number;
+    totalPages: number;
+    width: number;
+    height: number;
+    dpi: number;
+    summary: string;
+  }> {
+    if (typeof document === "undefined") {
+      throw new Error("Page preview requires a browser DOM canvas.");
+    }
+
+    let requestedPage = typeof options.page === "number" && Number.isFinite(options.page)
+      ? Math.max(1, Math.floor(options.page))
+      : undefined;
+    if (requestedPage === undefined) {
+      if (this.supportsTool("get_active_page")) {
+        try {
+          const active = await this.getActivePage();
+          requestedPage = active.currentPage;
+        } catch {
+          requestedPage = 1;
+        }
+      } else {
+        requestedPage = 1;
+      }
+    }
+
+    const dpi = typeof options.dpi === "number" && Number.isFinite(options.dpi)
+      ? Math.min(200, Math.max(72, Math.round(options.dpi)))
+      : 120;
+
+    const pdfBytes = await this.exportDocumentPdfBytes();
+    const pdfjs = await import("pdfjs-dist");
+    const workerModule = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+    pdfjs.GlobalWorkerOptions.workerSrc = workerModule.default;
+
+    const loadingTask = pdfjs.getDocument({ data: pdfBytes });
+    const pdf = await loadingTask.promise;
+    try {
+      const targetPage = Math.min(Math.max(1, requestedPage), pdf.numPages);
+      const pdfPage = await pdf.getPage(targetPage);
+      const viewport = pdfPage.getViewport({ scale: dpi / 72 });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(viewport.width));
+      canvas.height = Math.max(1, Math.round(viewport.height));
+      const canvasContext = canvas.getContext("2d");
+      if (!canvasContext) {
+        throw new Error("Could not acquire 2D canvas context for page preview.");
+      }
+      await pdfPage.render({ canvasContext, viewport, canvas }).promise;
+      const dataUrl = canvas.toDataURL("image/png");
+      const base64 = dataUrl.replace(/^data:image\/png;base64,/, "");
+      return {
+        __wordollamaImage: true,
+        mimeType: "image/png",
+        base64,
+        page: targetPage,
+        totalPages: pdf.numPages,
+        width: canvas.width,
+        height: canvas.height,
+        dpi,
+        summary: `Rendered page ${targetPage} of ${pdf.numPages} (${canvas.width}x${canvas.height} px at ${dpi} DPI).`,
+      };
+    } finally {
+      await loadingTask.destroy();
+    }
+  }
+
+  private async exportDocumentPdfBytes(): Promise<Uint8Array> {
+    const file = await new Promise<Office.File>((resolve, reject) => {
+      Office.context.document.getFileAsync(
+        Office.FileType.Pdf,
+        { sliceSize: 65536 },
+        (result) => {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            resolve(result.value);
+          } else {
+            reject(new Error(result.error?.message || "Failed to export document as PDF."));
+          }
+        },
+      );
+    });
+
+    try {
+      const chunks: Uint8Array[] = [];
+      let totalLength = 0;
+      for (let i = 0; i < file.sliceCount; i += 1) {
+        const slice = await new Promise<Office.Slice>((resolve, reject) => {
+          file.getSliceAsync(i, (result) => {
+            if (result.status === Office.AsyncResultStatus.Succeeded) {
+              resolve(result.value);
+            } else {
+              reject(new Error(result.error?.message || `Failed to read PDF slice ${i}.`));
+            }
+          });
+        });
+        const bytes = this.sliceDataToBytes(slice.data);
+        chunks.push(bytes);
+        totalLength += bytes.byteLength;
+      }
+      const combined = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        combined.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      return combined;
+    } finally {
+      await new Promise<void>((resolve) => {
+        file.closeAsync(() => resolve());
+      });
+    }
+  }
+
+  private sliceDataToBytes(data: unknown): Uint8Array {
+    if (data instanceof Uint8Array) return data;
+    if (Array.isArray(data)) return Uint8Array.from(data as number[]);
+    if (typeof data === "string") {
+      const binary = atob(data);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+    throw new Error("Unsupported PDF slice format returned by Office host.");
   }
 
   async getPageSetup(): Promise<{

@@ -431,12 +431,71 @@ public static class WordMcpEndpoint
         return JsonSerializer.SerializeToElement(schema);
     }
 
-    private static IResult ToolResult(JsonElement? id, string text, bool isError) =>
-        JsonRpcResult(id, new
+    private static IResult ToolResult(JsonElement? id, string text, bool isError)
+    {
+        if (!isError && TryParseImageToolResult(text, out var summary, out var base64, out var mimeType))
+        {
+            return JsonRpcResult(id, new
+            {
+                content = new object[]
+                {
+                    new { type = "text", text = summary },
+                    new { type = "image", data = base64, mimeType },
+                },
+                isError = false,
+            });
+        }
+
+        return JsonRpcResult(id, new
         {
             content = new[] { new { type = "text", text } },
             isError,
         });
+    }
+
+    private static bool TryParseImageToolResult(
+        string text,
+        out string summary,
+        out string base64,
+        out string mimeType)
+    {
+        summary = string.Empty;
+        base64 = string.Empty;
+        mimeType = "image/png";
+        if (string.IsNullOrWhiteSpace(text) || !text.TrimStart().StartsWith('{'))
+        {
+            return false;
+        }
+        try
+        {
+            using var doc = JsonDocument.Parse(text);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("__wordollamaImage", out var flag) ||
+                flag.ValueKind != JsonValueKind.True ||
+                !root.TryGetProperty("base64", out var base64Prop) ||
+                base64Prop.ValueKind != JsonValueKind.String)
+            {
+                return false;
+            }
+
+            var encoded = base64Prop.GetString();
+            if (string.IsNullOrWhiteSpace(encoded)) return false;
+
+            base64 = encoded;
+            mimeType = root.TryGetProperty("mimeType", out var mimeProp) && mimeProp.ValueKind == JsonValueKind.String
+                ? mimeProp.GetString() ?? "image/png"
+                : "image/png";
+            summary = root.TryGetProperty("summary", out var summaryProp) && summaryProp.ValueKind == JsonValueKind.String
+                ? summaryProp.GetString() ?? "Rendered page preview."
+                : "Rendered page preview.";
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
 
     private static IResult JsonRpcResult(JsonElement? id, object result) =>
         Results.Json(new { jsonrpc = "2.0", id, result });
