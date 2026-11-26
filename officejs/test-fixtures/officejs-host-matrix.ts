@@ -13,7 +13,7 @@ const profiles: HostProfile[] = [
   {
     name: "Word 2016 baseline",
     supported: { WordApi: "1.1" },
-    expectedCount: 17,
+    expectedCount: 18,
     unavailable: [
       "get_selection",
       "select_exact_text",
@@ -39,19 +39,19 @@ const profiles: HostProfile[] = [
   {
     name: "WordApi 1.4 cross-platform",
     supported: { WordApi: "1.4" },
-    expectedCount: 35,
+    expectedCount: 36,
     unavailable: ["read_bookmarks", "format_list", "get_active_page", "get_page_setup", "page_setup", "update_toc"],
   },
   {
     name: "WordApiDesktop 1.3",
     supported: { WordApi: "1.4", WordApiDesktop: "1.3" },
-    expectedCount: 39,
+    expectedCount: 40,
     unavailable: ["read_bookmarks", "update_toc"],
   },
   {
     name: "Microsoft 365 desktop",
     supported: { WordApi: "1.5", WordApiDesktop: "1.4" },
-    expectedCount: 45,
+    expectedCount: 46,
     unavailable: [],
   },
 ];

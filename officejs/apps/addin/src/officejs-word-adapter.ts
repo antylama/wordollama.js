@@ -2155,6 +2155,71 @@ export class OfficeJsWordAdapter {
     });
   }
 
+  async readHeaderFooter(options: {
+    sectionIndex?: number;
+    kind?: string;
+  } = {}): Promise<{
+    sections: Array<{
+      sectionIndex: number;
+      kind: string;
+      headerText: string;
+      footerText: string;
+    }>;
+  }> {
+    const requestedKind = options.kind?.toLowerCase();
+    const kinds: Array<{ key: string; type: Word.HeaderFooterType }> =
+      requestedKind === "first"
+        ? [{ key: "first", type: Word.HeaderFooterType.firstPage }]
+        : requestedKind === "even"
+          ? [{ key: "even", type: Word.HeaderFooterType.evenPages }]
+          : requestedKind === "primary"
+            ? [{ key: "primary", type: Word.HeaderFooterType.primary }]
+            : [
+                { key: "primary", type: Word.HeaderFooterType.primary },
+                { key: "first", type: Word.HeaderFooterType.firstPage },
+                { key: "even", type: Word.HeaderFooterType.evenPages },
+              ];
+
+    return Word.run(async (context) => {
+      const sections = context.document.sections;
+      sections.load("items");
+      await context.sync();
+
+      const targetIndices = typeof options.sectionIndex === "number"
+        ? [Math.max(1, Math.floor(options.sectionIndex))]
+        : sections.items.map((_, index) => index + 1);
+
+      const loaded: Array<{
+        sectionIndex: number;
+        kind: string;
+        header: Word.Body;
+        footer: Word.Body;
+      }> = [];
+
+      for (const sectionIndex of targetIndices) {
+        const section = sections.items[sectionIndex - 1];
+        if (!section) throw new Error(`section ${sectionIndex} is out of range`);
+        for (const kind of kinds) {
+          const header = section.getHeader(kind.type);
+          const footer = section.getFooter(kind.type);
+          header.load("text");
+          footer.load("text");
+          loaded.push({ sectionIndex, kind: kind.key, header, footer });
+        }
+      }
+
+      await context.sync();
+      return {
+        sections: loaded.map((entry) => ({
+          sectionIndex: entry.sectionIndex,
+          kind: entry.kind,
+          headerText: entry.header.text.replace(/\r$/, ""),
+          footerText: entry.footer.text.replace(/\r$/, ""),
+        })),
+      };
+    });
+  }
+
   async headerFooter(
     element: string,
     text: string,

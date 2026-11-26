@@ -414,6 +414,19 @@ const descriptors: OfficeToolDescriptor[] = [
     },
   },
   {
+    name: "read_header_footer",
+    description: "Read header and footer text for document sections (1-based section_index, optional kind: primary, first, even).",
+    isWriteOperation: false,
+    parameterSchema: {
+      type: "object",
+      properties: {
+        section_index: { type: "integer", minimum: 1, description: "Optional 1-based section index. Omit to read all sections." },
+        kind: { type: "string", enum: ["primary", "first", "even"], description: "Optional header/footer kind. Omit to read all kinds." },
+      },
+      required: [],
+    },
+  },
+  {
     name: "header_footer",
     description: "Set header text, footer text, or page numbers for a document section (1-based section_index, default 1) and kind (primary, first, or even).",
     isWriteOperation: true,
@@ -762,6 +775,11 @@ export class OfficeJsToolRegistry {
           mirrorMargins: this.optionalBoolean(args, "mirror_margins"),
         });
         return { updated: true };
+      case "read_header_footer":
+        return this.word.readHeaderFooter({
+          sectionIndex: this.optionalNumber(args, "section_index"),
+          kind: this.optionalString(args, "kind"),
+        });
       case "header_footer":
         await this.word.headerFooter(
           this.requireString(args, "element"),
